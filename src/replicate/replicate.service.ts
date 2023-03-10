@@ -18,7 +18,7 @@ export class ReplicateService {
     });
   }
 
-  async getPrediction(predictionId) {
+  async getPrediction(predictionId: string) {
     return this.replicateClient.get<ReplicateGetPrediction>(
       `/predictions/${predictionId}`,
       {
@@ -29,7 +29,7 @@ export class ReplicateService {
     );
   }
 
-  async createPrediction(request) {
+  async createPrediction(request: { [key: string]: any }) {
     return axios.post<ReplicateCreatePrediction>(
       'https://api.replicate.com/v1/predictions',
       request,

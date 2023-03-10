@@ -3,31 +3,24 @@ import { PrismaService } from 'src/prisma.service';
 import { TrainingService } from 'src/training/training.service';
 import { CreateTrainingImage } from 'src/training_images/create-training-image.interface';
 import { TrainingImagesService } from 'src/training_images/training_images.service';
+import { OrderStatus, User } from '@prisma/client';
 
 @Injectable()
 export class OrdersService {
-  public static readonly STATUSES = {
-    PENDING: 'PENDING',
-    TRAINING: 'TRAINING',
-    INFERING: 'INFERING',
-    COMPLETED: 'COMPLETED',
-    FAILED: 'FAILED',
-  };
-
   constructor(
     private prisma: PrismaService,
     private trainingImageService: TrainingImagesService,
     private trainingService: TrainingService,
   ) {}
 
-  async createPendingOrder(data) {
+  async createPendingOrder(user: User) {
     return await this.prisma.order.create({
-      data: { status: OrdersService.STATUSES.PENDING },
+      data: { status: OrderStatus.PENDING, user: { connect: { id: user.id } } },
     });
   }
 
   async addTrainingImagesToOrder(
-    orderId,
+    orderId: string,
     trainingImageFiles: Express.Multer.File[],
   ) {
     const trainingImages = await Promise.all(
@@ -53,11 +46,11 @@ export class OrdersService {
     });
   }
 
-  async payAndStartTraining(orderId) {
+  async payAndStartTraining(orderId: string) {
     await this.trainingService.startTraining(orderId);
   }
 
-  async getOrdersForUser(userId) {
+  async getOrdersByUserId(userId: string) {
     return await this.prisma.order.findMany({
       where: { userId },
       include: {

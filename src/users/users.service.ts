@@ -4,7 +4,7 @@ import { Injectable } from '@nestjs/common';
 export class UsersService {
   constructor() {}
 
-  async currentUser(req) {
+  async currentUser(req: Express.Request) {
     return { email: 'djgould0628@gmail.com' };
   }
 }

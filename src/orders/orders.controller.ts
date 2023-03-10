@@ -22,10 +22,11 @@ export class OrdersController {
   @Post()
   @UseInterceptors(FilesInterceptor('files'))
   async createPendingOrder(
+    @Req() req: Express.Request,
     @UploadedFiles() trainingImageFiles: Express.Multer.File[],
     @Param('orderId') orderId: string,
   ) {
-    await this.ordersService.createPendingOrder(order);
+    const order = await this.ordersService.createPendingOrder(req.user);
     return this.ordersService.addTrainingImagesToOrder(
       orderId,
       trainingImageFiles,
@@ -38,8 +39,8 @@ export class OrdersController {
   }
 
   @Get()
-  getOrders(@Req() req: Request) {
+  getOrders(@Req() req: Express.Request) {
     const user = this.usersService.currentUser(req);
-    return this.ordersService.getOrdersForUser(user);
+    return this.ordersService.getOrdersByUserId(user);
   }
 }

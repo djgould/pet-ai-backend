@@ -10,8 +10,19 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { UploadService } from './upload/upload.service';
 import { InferenceService } from './inference/inference.service';
 import { UsersService } from './users/users.service';
-import { AuthMiddleware } from './auth.middleware';
 import { ReplicateService } from './replicate/replicate.service';
+import {
+  ClerkExpressRequireAuth,
+  ClerkExpressWithAuth,
+  LooseAuthProp,
+  StrictAuthProp,
+} from '@clerk/clerk-sdk-node';
+
+declare global {
+  namespace Express {
+    interface Request extends LooseAuthProp {}
+  }
+}
 
 @Module({
   imports: [ScheduleModule.forRoot()],
@@ -31,7 +42,7 @@ import { ReplicateService } from './replicate/replicate.service';
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
-      .apply(AuthMiddleware)
+      .apply(ClerkExpressWithAuth({}))
       .forRoutes({ path: '*', method: RequestMethod.ALL });
   }
 }

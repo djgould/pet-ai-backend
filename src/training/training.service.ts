@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { SchedulerRegistry } from '@nestjs/schedule';
+import { OrderStatus } from '@prisma/client';
 import axios from 'axios';
 import { InferenceService } from 'src/inference/inference.service';
 import { OrdersService } from 'src/orders/orders.service';
@@ -18,7 +19,7 @@ export class TrainingService {
     private replicateService: ReplicateService,
   ) {}
 
-  async startTraining(orderId) {
+  async startTraining(orderId: string) {
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
       include: {
@@ -169,9 +170,9 @@ export class TrainingService {
     await this.prisma.order.update({
       where: { id: orderId },
       data: {
-        status: OrdersService.STATUSES.TRAINING,
+        status: OrderStatus.TRAINING,
         replicateTrainingId: response.data.id,
-        replicateStatus: response.data.status,
+        replicateTrainingStatus: response.data.status,
       },
     });
 
@@ -202,8 +203,8 @@ export class TrainingService {
           await this.prisma.order.update({
             where: { id: orderId },
             data: {
-              status: OrdersService.STATUSES.FAILED,
-              replicateStatus: response.data.status,
+              status: OrderStatus.FAILED,
+              replicateTrainingStatus: response.data.status,
             },
           });
         } else {
