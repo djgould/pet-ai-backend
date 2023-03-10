@@ -9,6 +9,7 @@ import { stat } from 'fs';
 import { ReplicateService } from 'src/replicate/replicate.service';
 import { ReplicateGetPrediction } from 'src/replicate/replicate.interface';
 import { FileDetails } from 'upload-js-full';
+import { OrderStatus } from '@prisma/client';
 
 const PROMPTS = [
   {
@@ -49,7 +50,7 @@ export class InferenceService {
   async startInference(orderId: string) {
     await this.prisma.order.update({
       where: { id: orderId },
-      data: { status: OrdersService.STATUSES.INFERING },
+      data: { status: OrderStatus.INFERING },
     });
 
     for (const prompt of PROMPTS) {
@@ -158,7 +159,7 @@ export class InferenceService {
     if (statuses.every((status) => status === 'succeeded')) {
       await this.prisma.order.update({
         where: { id: orderId },
-        data: { status: OrdersService.STATUSES.COMPLETED },
+        data: { status: OrderStatus.COMPLETED },
       });
     }
   }
@@ -177,7 +178,7 @@ export class InferenceService {
 
     await this.prisma.order.update({
       where: { id: orderId },
-      data: { status: OrdersService.STATUSES.FAILED },
+      data: { status: OrderStatus.FAILED },
     });
   }
 

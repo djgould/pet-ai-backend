@@ -9,14 +9,9 @@ import { TrainingService } from './training/training.service';
 import { ScheduleModule } from '@nestjs/schedule';
 import { UploadService } from './upload/upload.service';
 import { InferenceService } from './inference/inference.service';
-import { UsersService } from './users/users.service';
 import { ReplicateService } from './replicate/replicate.service';
-import {
-  ClerkExpressRequireAuth,
-  ClerkExpressWithAuth,
-  LooseAuthProp,
-  StrictAuthProp,
-} from '@clerk/clerk-sdk-node';
+import { ClerkExpressWithAuth, LooseAuthProp } from '@clerk/clerk-sdk-node';
+import { UserService } from './user/user.service';
 
 declare global {
   namespace Express {
@@ -35,14 +30,14 @@ declare global {
     TrainingService,
     UploadService,
     InferenceService,
-    UsersService,
     ReplicateService,
+    UserService,
   ],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
-      .apply(ClerkExpressWithAuth({}))
+      .apply(ClerkExpressWithAuth())
       .forRoutes({ path: '*', method: RequestMethod.ALL });
   }
 }

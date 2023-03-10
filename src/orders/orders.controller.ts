@@ -6,20 +6,19 @@ import {
   Post,
   Req,
   UploadedFiles,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { CurrentUser } from 'src/user/user.decorator';
 import { User } from '@prisma/client';
-import { UsersService } from 'src/users/users.service';
 import { OrdersService } from './orders.service';
+import { AuthGuard } from 'src/auth/auth.guard';
 
 @Controller('orders')
+@UseGuards(AuthGuard)
 export class OrdersController {
-  constructor(
-    private ordersService: OrdersService,
-    private usersService: UsersService,
-  ) {}
+  constructor(private ordersService: OrdersService) {}
 
   @Post()
   @UseInterceptors(FilesInterceptor('files'))

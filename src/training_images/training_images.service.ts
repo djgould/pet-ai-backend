@@ -58,7 +58,6 @@ export class TrainingImagesService {
         fileName: `{UNIQUE_DIGITS_8}{ORIGINAL_FILE_EXT}`,
       },
     });
-
     return file;
   }
 }

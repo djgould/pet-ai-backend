@@ -2,6 +2,7 @@ import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { Observable } from 'rxjs';
 import { PrismaService } from 'src/prisma.service';
+import { UserService } from 'src/user/user.service';
 
 declare global {
   namespace Express {
@@ -13,14 +14,13 @@ declare global {
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(private prisma: PrismaService) {}
+  constructor(private userService: UserService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Express.Request>();
+
     if (request.auth) {
-      request.user = await this.prisma.user.findUnique({
-        where: { id: request.auth.userId },
-      });
+      this.userService.findOrCreateUser(userId);
       return true;
     }
 
