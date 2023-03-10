@@ -1,24 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
-import Upload from 'upload-js-full';
 import sharp from 'sharp';
 import JSZip from 'jszip';
-
-const uploadManager = new Upload.UploadManager(
-  new Upload.Configuration({
-    apiKey: 'public_kW15b6k48wHEjGR8criKk5RMZ1Db', // e.g. "public_xxxxx"
-  }),
-);
+import { UploadService } from 'src/upload/upload.service';
 
 @Injectable()
 export class TrainingImagesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private uploadService: UploadService,
+  ) {}
 
   async createTrainingImage(trainingImageFile: Express.Multer.File) {
     // upload files to upload.io
-    const file = await uploadManager.upload({
+    const file = await this.uploadService.upload({
       ...trainingImageFile,
-      accountId: 'kW15b6k',
       data: trainingImageFile.buffer,
       path: {
         // See path variables: https://upload.io/docs/path-variables
@@ -53,13 +49,13 @@ export class TrainingImagesService {
     });
 
     const blob = await zip.generateAsync({ type: 'blob' });
-    const file = await uploadManager.upload({
-      accountId: 'kW15b6k',
+    const file = await this.uploadService.upload({
+      originalFileName: `${orderId}-training-images.zip`,
       data: blob,
       path: {
         // See path variables: https://upload.io/docs/path-variables
         folderPath: '/uploads/{UTC_YEAR}/{UTC_MONTH}/{UTC_DAY}',
-        fileName: `${orderId}-{UNIQUE_DIGITS_8}{ORIGINAL_FILE_EXT}`,
+        fileName: `{UNIQUE_DIGITS_8}{ORIGINAL_FILE_EXT}`,
       },
     });
 

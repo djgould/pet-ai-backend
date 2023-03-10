@@ -6,6 +6,14 @@ import { TrainingImagesService } from 'src/training_images/training_images.servi
 
 @Injectable()
 export class OrdersService {
+  public static readonly STATUSES = {
+    PENDING: 'PENDING',
+    TRAINING: 'TRAINING',
+    INFERING: 'INFERING',
+    COMPLETED: 'COMPLETED',
+    FAILED: 'FAILED',
+  };
+
   constructor(
     private prisma: PrismaService,
     private trainingImageService: TrainingImagesService,
@@ -14,7 +22,7 @@ export class OrdersService {
 
   async createPendingOrder(data) {
     return await this.prisma.order.create({
-      data: { ...data, status: 'PENDING' },
+      data: { status: OrdersService.STATUSES.PENDING },
     });
   }
 
@@ -46,10 +54,16 @@ export class OrdersService {
   }
 
   async payAndStartTraining(orderId) {
-    return await this.prisma.order.update({
-      where: { id: orderId },
-      data: {
-        status: 'TRAINING',
+    await this.trainingService.startTraining(orderId);
+  }
+
+  async getOrdersForUser(userId) {
+    return await this.prisma.order.findMany({
+      where: { userId },
+      include: {
+        trainingImages: true,
+        resultImages: true,
+        inferenceJobs: true,
       },
     });
   }

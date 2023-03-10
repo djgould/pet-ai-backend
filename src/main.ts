@@ -1,10 +1,12 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { PrismaService } from './prisma.service';
-import multer from 'multer'
+import * as multer from 'multer';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.useGlobalPipes(new ValidationPipe());
   await app.listen(3000);
 
   const storage = multer.diskStorage({
@@ -18,6 +20,6 @@ async function bootstrap() {
   app.use(multer({ storage }).array('files'));
 
   const prismaService = app.get(PrismaService);
-  await prismaService.enableShutdownHooks(app)
+  await prismaService.enableShutdownHooks(app);
 }
 bootstrap();
