@@ -12,6 +12,8 @@ import { InferenceService } from './inference/inference.service';
 import { ReplicateService } from './replicate/replicate.service';
 import { ClerkExpressWithAuth, LooseAuthProp } from '@clerk/clerk-sdk-node';
 import { UserService } from './user/user.service';
+import { LoggerModule } from './logger/logger.module';
+import { S3Service } from './s3/s3.service';
 
 declare global {
   namespace Express {
@@ -20,7 +22,7 @@ declare global {
 }
 
 @Module({
-  imports: [ScheduleModule.forRoot()],
+  imports: [ScheduleModule.forRoot(), LoggerModule],
   controllers: [AppController, OrdersController],
   providers: [
     AppService,
@@ -32,6 +34,7 @@ declare global {
     InferenceService,
     ReplicateService,
     UserService,
+    S3Service,
   ],
 })
 export class AppModule {

@@ -1,25 +1,26 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { OrderStatus } from '@prisma/client';
 import axios from 'axios';
 import { InferenceService } from 'src/inference/inference.service';
-import { OrdersService } from 'src/orders/orders.service';
 import { PrismaService } from 'src/prisma.service';
 import { ReplicateService } from 'src/replicate/replicate.service';
-import { UploadService } from 'src/upload/upload.service';
-import { UploadManager } from 'upload-js-full';
+import { S3Service } from 'src/s3/s3.service';
 
 @Injectable()
 export class TrainingService {
+  private readonly logger = new Logger(TrainingService.name);
   constructor(
     private prisma: PrismaService,
     private schedulerRegistry: SchedulerRegistry,
-    private uploadService: UploadService,
     private inferenceService: InferenceService,
     private replicateService: ReplicateService,
+    private s3Service: S3Service,
   ) {}
 
   async startTraining(orderId: string) {
+    this.logger.log(`Starting training for order ${orderId}`);
+
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
       include: {
@@ -185,32 +186,35 @@ export class TrainingService {
     });
 
     const callback = async () => {
+      this.logger.log(`Checking training progress for order ${orderId}...`);
+
       const response = await this.replicateService.getPrediction(
         order.replicateTrainingId,
       );
 
       const { status } = response.data;
 
-      if (
-        status === 'succeeded' ||
-        status === 'failed' ||
-        status === 'canceled'
-      ) {
+      if (status === 'failed' || status === 'canceled') {
+        this.logger.error(`Training failed for order ${orderId}`);
         this.schedulerRegistry.deleteInterval(
           this.getTrainingIntervalName(orderId),
         );
-        if (status === 'failed' || status === 'canceled') {
-          await this.prisma.order.update({
-            where: { id: orderId },
-            data: {
-              status: OrderStatus.FAILED,
-              replicateTrainingStatus: response.data.status,
-            },
-          });
-        } else {
-          this.saveModel(orderId, response.data.output[0]);
-          this.inferenceService.startInference(orderId);
-        }
+
+        await this.prisma.order.update({
+          where: { id: orderId },
+          data: {
+            status: OrderStatus.FAILED,
+            replicateTrainingStatus: response.data.status,
+          },
+        });
+      } else if (status === 'succeeded') {
+        this.logger.log(`Training succeeded for order ${orderId}`);
+        this.saveModel(orderId, response.data.output[0]);
+        this.inferenceService.startInference(orderId);
+      } else {
+        this.logger.log(
+          `Training still in progress for order ${orderId}. Status: ${status}`,
+        );
       }
     };
 
@@ -228,16 +232,20 @@ export class TrainingService {
    * @param modelUrl
    */
   private async saveModel(orderId: string, modelUrl: string) {
-    const file = this.uploadService.upload({
-      originalFileName: `${orderId}-trained-model.zip`,
-      // this is probably the wrong way to do this
-      data: (await axios.get(modelUrl, { responseType: 'blob' })).data.stream(),
+    this.logger.log(`Saving model for order ${orderId}...`);
+    // download from modelUrl using axios and pipe to s3
+    const response = await axios.get(modelUrl, {
+      responseType: 'stream',
     });
 
-    await this.prisma.order.update({
-      where: { id: orderId },
-      data: {
-        trainedModelUrl: (await file).fileUrl,
+    // pipe to aws s3
+    this.s3Service.putObject({
+      originalFileName: 'model.zip',
+      data: response.data,
+      path: {
+        // See path variables: https://upload.io/docs/path-variables
+        folderPath: '/uploads/{UTC_YEAR}/{UTC_MONTH}/{UTC_DAY}',
+        fileName: `${orderId}-{UNIQUE_DIGITS_8}{ORIGINAL_FILE_EXT}`,
       },
     });
   }

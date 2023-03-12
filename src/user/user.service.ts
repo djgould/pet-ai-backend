@@ -7,7 +7,7 @@ export class UserService {
 
   async findOrCreateUser(userId: string) {
     const user = await this.prisma.user.findUnique({
-      where: { id: userId },
+      where: { uid: userId },
     });
 
     if (user) {
@@ -16,7 +16,7 @@ export class UserService {
 
     return await this.prisma.user.create({
       data: {
-        id: userId,
+        uid: userId,
       },
     });
   }

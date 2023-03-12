@@ -30,7 +30,7 @@ export class ReplicateService {
   }
 
   async createPrediction(request: { [key: string]: any }) {
-    return axios.post<ReplicateCreatePrediction>(
+    return this.replicateClient.post<ReplicateCreatePrediction>(
       'https://api.replicate.com/v1/predictions',
       request,
     );

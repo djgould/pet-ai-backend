@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import axios, { AxiosResponse } from 'axios';
 import { ValueOf } from 'ts-essentials';
@@ -40,6 +40,8 @@ const PROMPTS = [
 
 @Injectable()
 export class InferenceService {
+  private readonly logger = new Logger(InferenceService.name);
+
   constructor(
     private prisma: PrismaService,
     private schedulerRegistry: SchedulerRegistry,
@@ -48,7 +50,9 @@ export class InferenceService {
   ) {}
 
   async startInference(orderId: string) {
-    await this.prisma.order.update({
+    this.logger.log(`Starting inference for order ${orderId}`);
+
+    const order = await this.prisma.order.update({
       where: { id: orderId },
       data: { status: OrderStatus.INFERING },
     });
@@ -56,7 +60,8 @@ export class InferenceService {
     for (const prompt of PROMPTS) {
       const request = {
         version:
-          '641855b7fa641ef22cb5e1db8c529b29f4b62f1d48d4c86ada1db54dc7a89e56',
+          '41ac9acb0c9e08ed246f11ee3be65bd78f536f8162d69d41fd0eab9d1d1c709d',
+        model_url: order.trainedModelUrl,
         prompt: prompt.prompt,
         negative_prompt: prompt.negative_prompt,
         width: 512,
@@ -98,27 +103,28 @@ export class InferenceService {
   private async trackInferenceJob(orderId: string, inferenceJobId: string) {
     const callback = async () => {
       try {
+        this.logger.log('Checking inference job status');
+
         const response = await this.replicateService.getPrediction(
           inferenceJobId,
         );
 
-        if (
-          response.data.status === 'succeeded' ||
+        if (response.data.status === 'succeeded') {
+          this.logger.log(
+            `Inference job ${inferenceJobId} succeeded for order ${orderId}`,
+          );
+          await this.handleSuccess(orderId, inferenceJobId, response);
+        } else if (
           response.data.status === 'failed' ||
           response.data.status === 'canceled'
         ) {
-          if (response.data.status === 'succeeded') {
-            await this.handleSuccess(orderId, inferenceJobId, response);
-          } else {
-            await this.handleFailure(orderId, inferenceJobId, response);
-          }
-
-          this.schedulerRegistry.deleteInterval(
-            this.getInferenceIntervalName(inferenceJobId),
+          this.logger.error(
+            `Inference job ${inferenceJobId} failed for order ${orderId}`,
           );
+          await this.handleFailure(orderId, inferenceJobId, response);
         }
       } catch (error) {
-        console.log(error);
+        this.logger.error(error);
         this.schedulerRegistry.deleteInterval(
           this.getInferenceIntervalName(inferenceJobId),
         );
@@ -137,6 +143,10 @@ export class InferenceService {
     inferenceJobId: string,
     response: AxiosResponse<ReplicateGetPrediction>,
   ) {
+    this.schedulerRegistry.deleteInterval(
+      this.getInferenceIntervalName(inferenceJobId),
+    );
+
     await this.prisma.inferenceJob.update({
       where: { id: inferenceJobId },
       data: {
@@ -157,6 +167,8 @@ export class InferenceService {
     const statuses = jobs.map((job) => job.status);
 
     if (statuses.every((status) => status === 'succeeded')) {
+      this.logger.log(`All inference jobs succeeded for order ${orderId}`);
+
       await this.prisma.order.update({
         where: { id: orderId },
         data: { status: OrderStatus.COMPLETED },
@@ -169,6 +181,10 @@ export class InferenceService {
     inferenceJobId: string,
     response: AxiosResponse<ReplicateGetPrediction>,
   ) {
+    this.schedulerRegistry.deleteInterval(
+      this.getInferenceIntervalName(inferenceJobId),
+    );
+
     await this.prisma.inferenceJob.update({
       where: { id: inferenceJobId },
       data: {

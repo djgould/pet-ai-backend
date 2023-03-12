@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
-import sharp from 'sharp';
-import JSZip from 'jszip';
+import * as sharp from 'sharp';
+import * as JSZip from 'jszip';
 import { UploadService } from 'src/upload/upload.service';
 
 @Injectable()

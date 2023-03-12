@@ -13,6 +13,7 @@ datasource db {
 
 model User {
   id        String   @id @default(cuid())
+  uid       String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   orders    Order[]
