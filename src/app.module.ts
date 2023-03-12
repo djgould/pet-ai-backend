@@ -14,6 +14,7 @@ import { ClerkExpressWithAuth, LooseAuthProp } from '@clerk/clerk-sdk-node';
 import { UserService } from './user/user.service';
 import { LoggerModule } from './logger/logger.module';
 import { S3Service } from './s3/s3.service';
+import { HealthController } from './health/health.controller';
 
 declare global {
   namespace Express {
@@ -23,7 +24,7 @@ declare global {
 
 @Module({
   imports: [ScheduleModule.forRoot(), LoggerModule],
-  controllers: [AppController, OrdersController],
+  controllers: [AppController, OrdersController, HealthController],
   providers: [
     AppService,
     PrismaService,
