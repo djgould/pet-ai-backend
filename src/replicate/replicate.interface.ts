@@ -13,7 +13,7 @@ export interface ReplicateGetPrediction {
   input: {
     prompt: string;
   };
-  output: string[];
+  output: string[] | string;
   error: string;
   logs: string;
   metrics: {
