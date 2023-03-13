@@ -208,7 +208,7 @@ export class TrainingService {
         });
       } else if (status === 'succeeded') {
         this.logger.log(`Training succeeded for order ${orderId}`);
-        await this.saveModel(orderId, response.data.output[0]);
+        await this.saveModel(orderId, response.data.output);
         this.inferenceService.startInference(orderId);
       } else {
         this.logger.log(
