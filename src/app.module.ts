@@ -28,9 +28,10 @@ declare global {
     LoggerModule.forRoot({
       pinoHttp: {
         transport: {
-          target: 'pino-pretty',
+          target: 'pino-syslog',
           options: {
-            singleLine: true,
+            enablePipelining: false,
+            destination: 1,
           },
         },
       },
