@@ -155,7 +155,7 @@ export class InferenceService {
     });
 
     const files = await Promise.all(
-      this.downloadResultImages(response.data.output),
+      this.downloadResultImages(response.data.output as string[]),
     );
     await Promise.all(
       files.map((file) => {
