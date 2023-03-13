@@ -15,6 +15,13 @@ import { UserService } from './user/user.service';
 import { LoggerModule } from 'nestjs-pino';
 import { S3Service } from './s3/s3.service';
 import { HealthController } from './health/health.controller';
+import {
+  utilities as nestWinstonModuleUtilities,
+  WinstonModule,
+} from 'nest-winston';
+import { WinstonTransport as AxiomTransport } from '@axiomhq/axiom-node';
+
+import * as winston from 'winston';
 
 declare global {
   namespace Express {
@@ -23,20 +30,7 @@ declare global {
 }
 
 @Module({
-  imports: [
-    ScheduleModule.forRoot(),
-    LoggerModule.forRoot({
-      pinoHttp: {
-        transport: {
-          target: 'pino-syslog',
-          options: {
-            enablePipelining: false,
-            destination: 1,
-          },
-        },
-      },
-    }),
-  ],
+  imports: [ScheduleModule.forRoot()],
   controllers: [AppController, OrdersController, HealthController],
   providers: [
     AppService,
