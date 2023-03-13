@@ -35,4 +35,8 @@ export class ReplicateService {
       request,
     );
   }
+
+  getClient() {
+    return this.replicateClient;
+  }
 }

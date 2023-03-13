@@ -208,7 +208,7 @@ export class TrainingService {
         });
       } else if (status === 'succeeded') {
         this.logger.log(`Training succeeded for order ${orderId}`);
-        this.saveModel(orderId, response.data.output[0]);
+        await this.saveModel(orderId, response.data.output[0]);
         this.inferenceService.startInference(orderId);
       } else {
         this.logger.log(
@@ -231,9 +231,9 @@ export class TrainingService {
    * @param modelUrl
    */
   private async saveModel(orderId: string, modelUrl: string) {
-    this.logger.log(`Saving model for order ${orderId}...`);
+    this.logger.log(`Saving model for order ${orderId} from ${modelUrl}...`);
     // download from modelUrl using axios and pipe to s3
-    const response = await axios.get(modelUrl, {
+    const response = await this.replicateService.getClient().get(modelUrl, {
       responseType: 'stream',
     });
 
