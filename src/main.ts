@@ -2,7 +2,8 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { PrismaService } from './prisma.service';
 import * as multer from 'multer';
-import { Logger, ValidationPipe } from '@nestjs/common';
+import { ValidationPipe } from '@nestjs/common';
+import { Logger, LoggerErrorInterceptor } from 'nestjs-pino';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -10,6 +11,8 @@ async function bootstrap() {
   });
   app.useLogger(app.get(Logger));
   app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalInterceptors(new LoggerErrorInterceptor());
+
   await app.listen(process.env.PORT || 3000);
 
   const storage = multer.diskStorage({

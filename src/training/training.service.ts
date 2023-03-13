@@ -30,7 +30,7 @@ export class TrainingService {
 
     const response = await this.replicateService.createPrediction({
       version:
-        '641855b7fa641ef22cb5e1db8c529b29f4b62f1d48d4c86ada1db54dc7a89e56',
+        '2cce42faa47ca7708e699e118fac47e6791073b1c128c08007a53bc22a5826e0',
       input: {
         // The prompt you use to describe your training images, in the format:
         // `a [identifier] [class noun]`, where the `[identifier]` should be a

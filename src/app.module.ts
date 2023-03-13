@@ -12,7 +12,7 @@ import { InferenceService } from './inference/inference.service';
 import { ReplicateService } from './replicate/replicate.service';
 import { ClerkExpressWithAuth, LooseAuthProp } from '@clerk/clerk-sdk-node';
 import { UserService } from './user/user.service';
-import { LoggerModule } from './logger/logger.module';
+import { LoggerModule } from 'nestjs-pino';
 import { S3Service } from './s3/s3.service';
 import { HealthController } from './health/health.controller';
 
@@ -23,7 +23,19 @@ declare global {
 }
 
 @Module({
-  imports: [ScheduleModule.forRoot(), LoggerModule],
+  imports: [
+    ScheduleModule.forRoot(),
+    LoggerModule.forRoot({
+      pinoHttp: {
+        transport: {
+          target: 'pino-pretty',
+          options: {
+            singleLine: true,
+          },
+        },
+      },
+    }),
+  ],
   controllers: [AppController, OrdersController, HealthController],
   providers: [
     AppService,
