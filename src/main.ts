@@ -10,6 +10,24 @@ import {
   utilities as nestWinstonModuleUtilities,
 } from 'nest-winston';
 import { WinstonTransport as AxiomTransport } from '@axiomhq/axiom-node';
+import { getBullBoardQueues } from './bull/bull.service';
+import { ExpressAdapter } from '@bull-board/express';
+import { createBullBoard } from '@bull-board/api';
+import { BaseAdapter } from '@bull-board/api/dist/src/queueAdapters/base';
+
+function initializeBullBoard(app: any) {
+  const serverAdapter = new ExpressAdapter();
+
+  serverAdapter.setBasePath('/admin/queues');
+  app.use('/admin/queues', serverAdapter.getRouter());
+
+  const { addQueue } = createBullBoard({
+    queues: [],
+    serverAdapter,
+  });
+
+  return { addQueue };
+}
 
 async function bootstrap() {
   const instance = createLogger({
@@ -29,6 +47,7 @@ async function bootstrap() {
       new AxiomTransport(),
     ],
   });
+
   const app = await NestFactory.create(AppModule, {
     bufferLogs: true,
     logger: WinstonModule.createLogger({
@@ -37,8 +56,14 @@ async function bootstrap() {
   });
 
   app.useGlobalPipes(new ValidationPipe());
+  const { addQueue } = initializeBullBoard(app);
 
   await app.listen(process.env.PORT || 3000);
+
+  const queues = getBullBoardQueues();
+  queues.forEach((queue: BaseAdapter) => {
+    addQueue(queue);
+  });
 
   const storage = multer.diskStorage({
     destination: (req, file, cb) => {

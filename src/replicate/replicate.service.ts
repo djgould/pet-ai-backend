@@ -18,7 +18,7 @@ export class ReplicateService {
     });
   }
 
-  async getPrediction(predictionId: string) {
+  getPrediction(predictionId: string) {
     return this.replicateClient.get<ReplicateGetPrediction>(
       `/predictions/${predictionId}`,
       {

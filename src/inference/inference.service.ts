@@ -10,6 +10,8 @@ import { ReplicateService } from 'src/replicate/replicate.service';
 import { ReplicateGetPrediction } from 'src/replicate/replicate.interface';
 import { FileDetails } from 'upload-js-full';
 import { OrderStatus } from '@prisma/client';
+import { InjectQueue } from '@nestjs/bull';
+import { Queue } from 'bull';
 
 const PROMPTS = [
   {
@@ -43,8 +45,8 @@ export class InferenceService {
   private readonly logger = new Logger(InferenceService.name);
 
   constructor(
+    @InjectQueue('inference') private inferenceQueue: Queue,
     private prisma: PrismaService,
-    private schedulerRegistry: SchedulerRegistry,
     private uploadService: UploadService,
     private replicateService: ReplicateService,
   ) {}
@@ -93,60 +95,22 @@ export class InferenceService {
           },
         },
       });
-
-      this.trackInferenceJob(orderId, response.data.id);
     }
 
     return;
   }
 
-  private async trackInferenceJob(orderId: string, inferenceJobId: string) {
-    const callback = async () => {
-      try {
-        this.logger.log('Checking inference job status');
-
-        const response = await this.replicateService.getPrediction(
-          inferenceJobId,
-        );
-
-        if (response.data.status === 'succeeded') {
-          this.logger.log(
-            `Inference job ${inferenceJobId} succeeded for order ${orderId}`,
-          );
-          await this.handleSuccess(orderId, inferenceJobId, response);
-        } else if (
-          response.data.status === 'failed' ||
-          response.data.status === 'canceled'
-        ) {
-          this.logger.error(
-            `Inference job ${inferenceJobId} failed for order ${orderId}`,
-          );
-          await this.handleFailure(orderId, inferenceJobId, response);
-        }
-      } catch (error) {
-        this.logger.error(error);
-        this.schedulerRegistry.deleteInterval(
-          this.getInferenceIntervalName(inferenceJobId),
-        );
-      }
-    };
-
-    const interval = setInterval(callback, 60 * 1000);
-    this.schedulerRegistry.addInterval(
-      this.getInferenceIntervalName(inferenceJobId),
-      interval,
-    );
+  checkInferenceStatus(orderId: string) {
+    this.inferenceQueue.add('trackProgress', {
+      orderId,
+    });
   }
 
-  private async handleSuccess(
+  async handleSuccess(
     orderId: string,
     inferenceJobId: string,
     response: AxiosResponse<ReplicateGetPrediction>,
   ) {
-    this.schedulerRegistry.deleteInterval(
-      this.getInferenceIntervalName(inferenceJobId),
-    );
-
     await this.prisma.inferenceJob.update({
       where: { id: inferenceJobId },
       data: {
@@ -164,27 +128,33 @@ export class InferenceService {
     );
 
     const jobs = await this.getAllInferenceJobForOrder(orderId);
+    if (jobs.length === 0) {
+      this.logger.log(
+        `No inference jobs found for order ${orderId}. Order failed.`,
+      );
+      return this.prisma.order.update({
+        where: { id: orderId },
+        data: { status: OrderStatus.FAILED },
+      });
+    }
+
     const statuses = jobs.map((job) => job.status);
 
     if (statuses.every((status) => status === 'succeeded')) {
       this.logger.log(`All inference jobs succeeded for order ${orderId}`);
 
-      await this.prisma.order.update({
+      return this.prisma.order.update({
         where: { id: orderId },
         data: { status: OrderStatus.COMPLETED },
       });
     }
   }
 
-  private async handleFailure(
+  async handleFailure(
     orderId: string,
     inferenceJobId: string,
     response: AxiosResponse<ReplicateGetPrediction>,
   ) {
-    this.schedulerRegistry.deleteInterval(
-      this.getInferenceIntervalName(inferenceJobId),
-    );
-
     await this.prisma.inferenceJob.update({
       where: { id: inferenceJobId },
       data: {
@@ -192,13 +162,13 @@ export class InferenceService {
       },
     });
 
-    await this.prisma.order.update({
+    return this.prisma.order.update({
       where: { id: orderId },
       data: { status: OrderStatus.FAILED },
     });
   }
 
-  private async getAllInferenceJobForOrder(orderId: string) {
+  async getAllInferenceJobForOrder(orderId: string) {
     return await this.prisma.inferenceJob.findMany({
       where: {
         order: {

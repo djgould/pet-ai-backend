@@ -1,19 +1,21 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { InjectQueue, Process, Processor } from '@nestjs/bull';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { OrderStatus } from '@prisma/client';
 import axios from 'axios';
+import { Queue } from 'bull';
 import { InferenceService } from 'src/inference/inference.service';
 import { PrismaService } from 'src/prisma.service';
 import { ReplicateService } from 'src/replicate/replicate.service';
 import { S3Service } from 'src/s3/s3.service';
 
 @Injectable()
+@Processor('training')
 export class TrainingService {
   private readonly logger = new Logger(TrainingService.name);
   constructor(
+    @InjectQueue('training') private trainingQueue: Queue,
     private prisma: PrismaService,
-    private schedulerRegistry: SchedulerRegistry,
-    private inferenceService: InferenceService,
     private replicateService: ReplicateService,
     private s3Service: S3Service,
   ) {}
@@ -175,54 +177,14 @@ export class TrainingService {
         replicateTrainingStatus: response.data.status,
       },
     });
-
-    this.trackTrainingProgress(orderId);
   }
 
-  async trackTrainingProgress(orderId: string) {
-    const order = await this.prisma.order.findUnique({
-      where: { id: orderId },
+  async checkTrainingStatus(orderId: string) {
+    const job = await this.trainingQueue.add('trackProgress', {
+      orderId: orderId,
     });
 
-    const callback = async () => {
-      this.logger.log(`Checking training progress for order ${orderId}...`);
-
-      const response = await this.replicateService.getPrediction(
-        order.replicateTrainingId,
-      );
-
-      const { status } = response.data;
-
-      if (status === 'failed' || status === 'canceled') {
-        this.logger.error(`Training failed for order ${orderId}`);
-        this.schedulerRegistry.deleteInterval(
-          this.getTrainingIntervalName(orderId),
-        );
-
-        await this.prisma.order.update({
-          where: { id: orderId },
-          data: {
-            status: OrderStatus.FAILED,
-            replicateTrainingStatus: response.data.status,
-          },
-        });
-      } else if (status === 'succeeded') {
-        this.logger.log(`Training succeeded for order ${orderId}`);
-        await this.saveModel(orderId, response.data.output as string);
-        this.inferenceService.startInference(orderId);
-      } else {
-        this.logger.log(
-          `Training still in progress for order ${orderId}. Status: ${status}`,
-        );
-      }
-    };
-
-    const interval = setInterval(callback, 60 * 1000);
-
-    this.schedulerRegistry.addInterval(
-      this.getTrainingIntervalName(orderId),
-      interval,
-    );
+    this.logger.log(job.toJSON(), 'Created training.trackProgress job');
   }
 
   /**
@@ -230,7 +192,7 @@ export class TrainingService {
    * @param orderId
    * @param modelUrl
    */
-  private async saveModel(orderId: string, modelUrl: string) {
+  async saveModel(orderId: string, modelUrl: string) {
     this.logger.log(`Saving model for order ${orderId} from ${modelUrl}...`);
     // download from modelUrl using axios and pipe to s3
     const response = await this.replicateService.getClient().get(modelUrl, {
@@ -247,9 +209,5 @@ export class TrainingService {
         fileName: `${orderId}-{UNIQUE_DIGITS_8}{ORIGINAL_FILE_EXT}`,
       },
     });
-  }
-
-  private getTrainingIntervalName(orderId: string) {
-    return `${orderId}-training`;
   }
 }

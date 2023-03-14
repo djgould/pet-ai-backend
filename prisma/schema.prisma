@@ -29,6 +29,7 @@ model Order {
   trainedModelUrl         String?
   replicateTrainingId     String?
   replicateTrainingStatus ReplicateStatus?
+  replicateModelUrl       String?
   user                    User             @relation(fields: [userId], references: [id])
   userId                  String
   job                     OrderJob?
@@ -40,6 +41,7 @@ model Order {
 enum OrderStatus {
   PENDING
   TRAINING
+  UPLOADING_MODEL
   INFERING
   COMPLETED
   FAILED
