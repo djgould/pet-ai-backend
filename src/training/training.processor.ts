@@ -88,6 +88,7 @@ export class TrainingProcessor extends WorkerHost {
       await this.trainingService.saveModel(
         orderId,
         response.data.output as string,
+        job,
       );
       this.inferenceService.startInference(orderId);
     } else {

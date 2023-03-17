@@ -3,7 +3,7 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { OrderStatus } from '@prisma/client';
 import axios, { AxiosError } from 'axios';
-import { Queue } from 'bullmq';
+import { Job, Queue } from 'bullmq';
 import { InferenceService } from 'src/inference/inference.service';
 import { PrismaService } from 'src/prisma.service';
 import { ReplicateService } from 'src/replicate/replicate.service';
@@ -192,12 +192,19 @@ export class TrainingService {
    * @param orderId
    * @param modelUrl
    */
-  async saveModel(orderId: string, modelUrl: string) {
+  async saveModel(orderId: string, modelUrl: string, job: Job<any>) {
     this.logger.log(`Saving model for order ${orderId} from ${modelUrl}...`);
     // download from modelUrl using axios and pipe to s3
     try {
       const response = await this.replicateService.getClient().get(modelUrl, {
         responseType: 'stream',
+        onDownloadProgress(progressEvent) {
+          const progress = (progressEvent.loaded / progressEvent.total) * 100;
+          this.logger.log(
+            `Downloaded ${progress}% of model for order ${orderId}`,
+          );
+          job.updateProgress(progress);
+        },
       });
 
       const passThrough = new PassThrough();
