@@ -198,7 +198,7 @@ export class TrainingService {
     try {
       const response = await this.replicateService.getClient().get(modelUrl, {
         responseType: 'stream',
-        onDownloadProgress(progressEvent) {
+        onDownloadProgress: (progressEvent) => {
           const progress = (progressEvent.loaded / progressEvent.total) * 100;
           this.logger.log(
             `Downloaded ${progress}% of model for order ${orderId}`,
