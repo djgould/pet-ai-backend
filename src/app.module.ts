@@ -7,6 +7,7 @@ import { OrdersService } from './orders/orders.service';
 import { TrainingImagesService } from './training_images/training_images.service';
 import { TrainingService } from './training/training.service';
 import { ScheduleModule } from '@nestjs/schedule';
+import { ConfigModule, ConfigModuleOptions } from '@nestjs/config';
 import { InferenceModule } from './inference/inference.module';
 import { TrainingModule } from './training/training.module';
 import { UploadService } from './upload/upload.service';
@@ -20,6 +21,8 @@ import { HealthController } from './health/health.controller';
 import { BullModule } from '@nestjs/bullmq';
 import { BullService } from './bull/bull.service';
 import { OrdersModule } from './orders/orders.module';
+import { AppConfig, validateConfig } from './app.config';
+import { validate } from 'class-validator';
 
 declare global {
   namespace Express {
@@ -35,6 +38,17 @@ declare global {
         host: process.env.QUEUE_REDIS_HOST || 'localhost',
         port: Number(process.env.QUEUE_REDIS_PORT) || 637,
       },
+    }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [() => new AppConfig()],
+      validate: validateConfig,
+      validationOptions: {
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+        validateCustomDecorators: true,
+      } as ConfigModuleOptions['validationOptions'],
     }),
     TrainingModule,
     InferenceModule,

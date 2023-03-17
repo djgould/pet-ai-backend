@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import axios, { AxiosInstance } from 'axios';
+import { AppConfig } from 'src/app.config';
 import {
   ReplicateCreatePrediction,
   ReplicateGetPrediction,
@@ -9,11 +11,11 @@ import {
 export class ReplicateService {
   private readonly replicateClient: AxiosInstance;
 
-  constructor() {
+  constructor(private configService: ConfigService<AppConfig>) {
     this.replicateClient = axios.create({
       baseURL: 'https://api.replicate.com/v1',
       headers: {
-        Authorization: `Token ${process.env.REPLICATE_API_KEY}`,
+        Authorization: `Token ${this.configService.get('REPLICATE_API_KEY')}`,
       },
     });
   }
@@ -23,7 +25,7 @@ export class ReplicateService {
       `/predictions/${predictionId}`,
       {
         headers: {
-          Authorization: `Token ${process.env.REPLICATE_API_KEY}`,
+          Authorization: `Token ${this.configService.get('REPLICATE_API_KEY')}`,
         },
       },
     );
