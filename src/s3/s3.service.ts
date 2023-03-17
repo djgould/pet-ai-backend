@@ -13,7 +13,13 @@ export class S3Service {
   private readonly s3: S3;
 
   constructor() {
-    this.s3 = new S3({ region: 'us-east-1' });
+    this.s3 = new S3({
+      region: 'us-east-1',
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+      },
+    });
   }
 
   async getObject(bucket: string, key: string): Promise<Uint8Array> {
