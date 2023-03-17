@@ -29,34 +29,9 @@ export class S3Service {
     return response.Body.transformToByteArray();
   }
 
-  async putObject({
-    originalFileName,
-    data,
-    path,
-    fileResponse,
-  }: {
-    originalFileName: string;
-    data: PassThrough;
-    path: {
-      folderPath: string;
-      fileName: string;
-    };
-    fileResponse: AxiosResponse;
-  }): Promise<PutObjectCommandOutput> {
-    const uniqueDigits = new Date().getTime().toString().slice(-8); // Generate a unique 8-digit number based on the current timestamp
-    const fileExt = originalFileName.split('.').pop(); // Get the file extension from the original file name
-    const uniqueFileName = path.fileName
-      .replace('{UNIQUE_DIGITS_8}', uniqueDigits)
-      .replace('{ORIGINAL_FILE_EXT}', fileExt); // Replace the path variables in the file name with actual values
-
-    const request: PutObjectCommandInput = {
-      Bucket: 'deving-pet-ai',
-      Key: `${path.folderPath}/${uniqueFileName}`,
-      Body: data,
-      ContentType: fileResponse.headers['content-type'],
-      ContentLength: fileResponse.headers['content-length'],
-    };
-
+  async putObject(
+    request: PutObjectCommandInput,
+  ): Promise<PutObjectCommandOutput> {
     return this.s3.putObject(request);
   }
 

@@ -1,3 +1,4 @@
+import { PutObjectCommandInput } from '@aws-sdk/client-s3';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { SchedulerRegistry } from '@nestjs/schedule';
@@ -208,20 +209,28 @@ export class TrainingService {
       });
 
       const passThrough = new PassThrough();
+
+      const request: PutObjectCommandInput = {
+        Bucket: 'deving-pet-ai',
+        Key: `trained_models/${orderId}-model.zip`,
+        Body: passThrough,
+        ContentType: response.headers['content-type'],
+        ContentLength: response.headers['content-length'],
+      };
+
       // pipe to aws s3
-      const promise = this.s3Service.putObject({
-        originalFileName: 'model.zip',
-        data: passThrough,
-        path: {
-          // See path variables: https://upload.io/docs/path-variables
-          folderPath: '/uploads/{UTC_YEAR}/{UTC_MONTH}/{UTC_DAY}',
-          fileName: `${orderId}-{UNIQUE_DIGITS_8}{ORIGINAL_FILE_EXT}`,
-        },
-        fileResponse: response,
-      });
+      const promise = this.s3Service.putObject(request);
 
       response.data.pipe(passThrough);
-      return await promise;
+      await promise;
+
+      const s3ModelUrl = `https://${request.Bucket}.s3.amazonaws.com/${request.Key}`;
+      await this.prisma.order.update({
+        where: { id: orderId },
+        data: {
+          trainedModelUrl: s3ModelUrl,
+        },
+      });
     } catch (e) {
       if (e instanceof AxiosError) {
         return this.logger.error(e.response, e.stack, 'Error saving model');
