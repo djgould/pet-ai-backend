@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import axios, { AxiosInstance } from 'axios';
+import axios, { AxiosError, AxiosInstance } from 'axios';
 import { AppConfig } from 'src/app.config';
 import {
   ReplicateCreatePrediction,
@@ -10,6 +10,7 @@ import {
 @Injectable()
 export class ReplicateService {
   private readonly replicateClient: AxiosInstance;
+  private readonly logger = new Logger(ReplicateService.name);
 
   constructor(private configService: ConfigService<AppConfig>) {
     this.replicateClient = axios.create({
@@ -32,10 +33,22 @@ export class ReplicateService {
   }
 
   async createPrediction(request: { [key: string]: any }) {
-    return this.replicateClient.post<ReplicateCreatePrediction>(
-      'https://api.replicate.com/v1/predictions',
-      request,
-    );
+    try {
+      const response =
+        await this.replicateClient.post<ReplicateCreatePrediction>(
+          'https://api.replicate.com/v1/predictions',
+          request,
+        );
+      return response;
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        this.logger.error(error.response, 'Replicate error');
+      } else {
+        this.logger.error(error);
+      }
+
+      throw error;
+    }
   }
 
   getClient() {
