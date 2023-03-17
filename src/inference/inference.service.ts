@@ -63,15 +63,17 @@ export class InferenceService {
       const request = {
         version:
           '41ac9acb0c9e08ed246f11ee3be65bd78f536f8162d69d41fd0eab9d1d1c709d',
-        model_url: order.trainedModelUrl,
-        prompt: prompt.prompt,
-        negative_prompt: prompt.negative_prompt,
-        width: 512,
-        height: 512,
-        prompt_strength: 0.8,
-        num_outputs: 10,
-        num_inference_steps: 50,
-        guidance_scale: 7.5,
+        input: {
+          model_url: order.trainedModelUrl,
+          prompt: prompt.prompt,
+          negative_prompt: prompt.negative_prompt,
+          width: 512,
+          height: 512,
+          prompt_strength: 0.8,
+          num_outputs: 10,
+          num_inference_steps: 50,
+          guidance_scale: 7.5,
+        },
       };
 
       const response = await this.replicateService.createPrediction(request);
@@ -80,14 +82,14 @@ export class InferenceService {
         data: {
           replicateId: response.data.id,
           status: response.data.status,
-          prompt: request.prompt,
-          negativePrompt: request.negative_prompt,
+          prompt: request.input.prompt,
+          negativePrompt: request.input.negative_prompt,
           version: request.version,
-          width: request.width,
-          height: request.height,
-          numOutputs: request.num_outputs,
-          numInferenceSteps: request.num_inference_steps,
-          guidanceScale: request.guidance_scale,
+          width: request.input.width,
+          height: request.input.height,
+          numOutputs: request.input.num_outputs,
+          numInferenceSteps: request.input.num_inference_steps,
+          guidanceScale: request.input.guidance_scale,
           order: {
             connect: {
               id: orderId,
