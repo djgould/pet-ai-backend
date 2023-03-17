@@ -126,7 +126,7 @@ export class TrainingService {
 
         // Total number of training steps to perform.  If provided, overrides
         // num_train_epochs.
-        max_train_steps: 10,
+        max_train_steps: 1,
 
         // Number of updates steps to accumulate before performing a
         // backward/update pass.
