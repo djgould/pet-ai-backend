@@ -81,26 +81,32 @@ export class InferenceProcessor extends WorkerHost {
       });
     }
 
-    inferenceJobs.forEach(async (job) => {
-      const predictionId = job.replicateId;
-      this.logger.log(
-        `Checking InferenceJob ${job.id} status for order: ${orderId}, prediction: ${predictionId}:`,
-      );
-
-      const response = await this.replicateService.getPrediction(predictionId);
-
-      if (response.data.status === 'succeeded') {
+    return Promise.all(
+      inferenceJobs.map(async (job) => {
+        const predictionId = job.replicateId;
         this.logger.log(
-          `InferenceJob ${predictionId} succeeded for order ${orderId}`,
+          `Checking InferenceJob ${job.id} status for order: ${orderId}, prediction: ${predictionId}:`,
         );
-        return this.inferenceService.handleSuccess(orderId, job.id, response);
-      } else if (
-        response.data.status === 'failed' ||
-        response.data.status === 'canceled'
-      ) {
-        this.logger.error(`InferenceJob ${job.id} failed for Order ${orderId}`);
-        return this.inferenceService.handleFailure(orderId, job.id, response);
-      }
-    });
+
+        const response = await this.replicateService.getPrediction(
+          predictionId,
+        );
+
+        if (response.data.status === 'succeeded') {
+          this.logger.log(
+            `InferenceJob ${predictionId} succeeded for order ${orderId}`,
+          );
+          return this.inferenceService.handleSuccess(orderId, job.id, response);
+        } else if (
+          response.data.status === 'failed' ||
+          response.data.status === 'canceled'
+        ) {
+          this.logger.error(
+            `InferenceJob ${job.id} failed for Order ${orderId}`,
+          );
+          return this.inferenceService.handleFailure(orderId, job.id, response);
+        }
+      }),
+    );
   }
 }
