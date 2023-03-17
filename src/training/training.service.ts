@@ -1,16 +1,16 @@
-import { InjectQueue, Process, Processor } from '@nestjs/bull';
+import { InjectQueue } from '@nestjs/bullmq';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { OrderStatus } from '@prisma/client';
-import axios from 'axios';
-import { Queue } from 'bull';
+import axios, { AxiosError } from 'axios';
+import { Queue } from 'bullmq';
 import { InferenceService } from 'src/inference/inference.service';
 import { PrismaService } from 'src/prisma.service';
 import { ReplicateService } from 'src/replicate/replicate.service';
 import { S3Service } from 'src/s3/s3.service';
+import { PassThrough } from 'stream';
 
 @Injectable()
-@Processor('training')
 export class TrainingService {
   private readonly logger = new Logger(TrainingService.name);
   constructor(
@@ -78,7 +78,7 @@ export class TrainingService {
         // Minimal class images for prior preservation loss. If not enough
         // images are provided in class_data, additional images will be sampled
         // with class_prompt.
-        num_class_images: 800,
+        num_class_images: 1000,
 
         // The prompt used to generate sample outputs to save.
         // 'save_sample_prompt': ...,
@@ -126,7 +126,7 @@ export class TrainingService {
 
         // Total number of training steps to perform.  If provided, overrides
         // num_train_epochs.
-        max_train_steps: 1000,
+        max_train_steps: 10,
 
         // Number of updates steps to accumulate before performing a
         // backward/update pass.
@@ -180,7 +180,7 @@ export class TrainingService {
   }
 
   async checkTrainingStatus(orderId: string) {
-    const job = await this.trainingQueue.add('trackProgress', {
+    const job = await this.trainingQueue.add('checkTrainingStatus', {
       orderId: orderId,
     });
 
@@ -195,19 +195,32 @@ export class TrainingService {
   async saveModel(orderId: string, modelUrl: string) {
     this.logger.log(`Saving model for order ${orderId} from ${modelUrl}...`);
     // download from modelUrl using axios and pipe to s3
-    const response = await this.replicateService.getClient().get(modelUrl, {
-      responseType: 'stream',
-    });
+    try {
+      const response = await this.replicateService.getClient().get(modelUrl, {
+        responseType: 'stream',
+      });
 
-    // pipe to aws s3
-    this.s3Service.putObject({
-      originalFileName: 'model.zip',
-      data: response.data,
-      path: {
-        // See path variables: https://upload.io/docs/path-variables
-        folderPath: '/uploads/{UTC_YEAR}/{UTC_MONTH}/{UTC_DAY}',
-        fileName: `${orderId}-{UNIQUE_DIGITS_8}{ORIGINAL_FILE_EXT}`,
-      },
-    });
+      const passThrough = new PassThrough();
+      // pipe to aws s3
+      const promise = this.s3Service.putObject({
+        originalFileName: 'model.zip',
+        data: passThrough,
+        path: {
+          // See path variables: https://upload.io/docs/path-variables
+          folderPath: '/uploads/{UTC_YEAR}/{UTC_MONTH}/{UTC_DAY}',
+          fileName: `${orderId}-{UNIQUE_DIGITS_8}{ORIGINAL_FILE_EXT}`,
+        },
+        fileResponse: response,
+      });
+
+      response.data.pipe(passThrough);
+      return await promise;
+    } catch (e) {
+      if (e instanceof AxiosError) {
+        return this.logger.error(e.response, e.stack, 'Error saving model');
+      }
+      this.logger.error(e, 'Error saving model');
+      throw e;
+    }
   }
 }

@@ -1,24 +1,29 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
 import { TrainingService } from 'src/training/training.service';
-import { CreateTrainingImage } from 'src/training_images/create-training-image.interface';
 import { TrainingImagesService } from 'src/training_images/training_images.service';
 import { OrderStatus, User } from '@prisma/client';
-import { Cron, Interval } from '@nestjs/schedule';
-import { Queue } from 'bull';
-import { InjectQueue } from '@nestjs/bull';
 import { InferenceService } from 'src/inference/inference.service';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 
 @Injectable()
 export class OrdersService {
   private readonly logger = new Logger(OrdersService.name);
 
   constructor(
+    @InjectQueue('orders') private ordersQueue: Queue,
     private prisma: PrismaService,
     private trainingImageService: TrainingImagesService,
     private trainingService: TrainingService,
     private inferenceService: InferenceService,
-  ) {}
+  ) {
+    ordersQueue.add(
+      'checkTrainingStatus',
+      {},
+      { repeat: { every: 60 * 1000 } },
+    );
+  }
 
   async createPendingOrder(user: User) {
     return await this.prisma.order.create({
@@ -50,37 +55,6 @@ export class OrdersService {
           })),
         },
       },
-    });
-  }
-
-  @Interval(1000 * 60)
-  async checkTrainingOrders() {
-    const trainingOrders = await this.prisma.order.findMany({
-      where: { status: OrderStatus.TRAINING },
-      include: { trainingImages: true },
-    });
-
-    const inferingOrders = await this.prisma.order.findMany({
-      where: { status: OrderStatus.INFERING },
-      include: { trainingImages: true },
-    });
-
-    this.logger.log(
-      trainingOrders,
-      `Orders in training: ${trainingOrders.length}`,
-    );
-
-    this.logger.log(
-      inferingOrders,
-      `Orders in infering: ${inferingOrders.length}`,
-    );
-
-    trainingOrders.forEach((order) => {
-      this.trainingService.checkTrainingStatus(order.id);
-    });
-
-    inferingOrders.forEach((order) => {
-      this.inferenceService.checkInferenceStatus(order.id);
     });
   }
 

@@ -10,8 +10,8 @@ import { ReplicateService } from 'src/replicate/replicate.service';
 import { ReplicateGetPrediction } from 'src/replicate/replicate.interface';
 import { FileDetails } from 'upload-js-full';
 import { OrderStatus } from '@prisma/client';
-import { InjectQueue } from '@nestjs/bull';
-import { Queue } from 'bull';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 
 const PROMPTS = [
   {
@@ -96,12 +96,10 @@ export class InferenceService {
         },
       });
     }
-
-    return;
   }
 
   checkInferenceStatus(orderId: string) {
-    this.inferenceQueue.add('trackProgress', {
+    this.inferenceQueue.add('checkInferenceStatus', {
       orderId,
     });
   }

@@ -17,8 +17,9 @@ import { UserService } from './user/user.service';
 import { LoggerModule } from 'nestjs-pino';
 import { S3Service } from './s3/s3.service';
 import { HealthController } from './health/health.controller';
-import { BullModule } from '@nestjs/bull';
+import { BullModule } from '@nestjs/bullmq';
 import { BullService } from './bull/bull.service';
+import { OrdersModule } from './orders/orders.module';
 
 declare global {
   namespace Express {
@@ -30,19 +31,19 @@ declare global {
   imports: [
     ScheduleModule.forRoot(),
     BullModule.forRoot({
-      redis: {
+      connection: {
         host: process.env.QUEUE_REDIS_HOST || 'localhost',
         port: Number(process.env.QUEUE_REDIS_PORT) || 637,
       },
     }),
     TrainingModule,
     InferenceModule,
+    OrdersModule,
   ],
   controllers: [AppController, OrdersController, HealthController],
   providers: [
     AppService,
     PrismaService,
-    OrdersService,
     TrainingImagesService,
     UploadService,
     ReplicateService,
@@ -50,7 +51,14 @@ declare global {
     S3Service,
     BullService,
   ],
-  exports: [PrismaService, ReplicateService, S3Service, UploadService],
+  exports: [
+    PrismaService,
+    ReplicateService,
+    S3Service,
+    UploadService,
+    TrainingImagesService,
+    UserService,
+  ],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {

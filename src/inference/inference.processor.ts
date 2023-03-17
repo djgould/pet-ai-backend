@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { SchedulerRegistry } from '@nestjs/schedule';
-import { Process, Processor } from '@nestjs/bull';
+import { Processor, WorkerHost } from '@nestjs/bullmq';
 import axios, { AxiosResponse } from 'axios';
 import { ValueOf } from 'ts-essentials';
 import { OrdersService } from 'src/orders/orders.service';
@@ -12,7 +12,7 @@ import { ReplicateGetPrediction } from 'src/replicate/replicate.interface';
 import { FileDetails } from 'upload-js-full';
 import { OrderStatus } from '@prisma/client';
 import { InferenceService } from './inference.service';
-import { Job } from 'bull';
+import { Job } from 'bullmq';
 
 const PROMPTS = [
   {
@@ -43,17 +43,29 @@ const PROMPTS = [
 
 @Injectable()
 @Processor('inference')
-export class InferenceProcessor {
+export class InferenceProcessor extends WorkerHost {
   private readonly logger = new Logger(InferenceProcessor.name);
 
   constructor(
     private replicateService: ReplicateService,
     private inferenceService: InferenceService,
     private prisma: PrismaService,
-  ) {}
+  ) {
+    super();
+  }
 
-  @Process('trackProgress')
-  async trackProgress(job: Job<{ orderId: string }>) {
+  async process(job: Job<{ orderId: string }, any, 'checkInferenceStatus'>) {
+    switch (job.name) {
+      case 'checkInferenceStatus':
+        return this.checkInferenceStatus(job);
+      default:
+        throw new Error(`Unknown job name: ${job.name}`);
+    }
+  }
+
+  private async checkInferenceStatus(
+    job: Job<{ orderId: string }, any, 'checkInferenceStatus'>,
+  ) {
     const { orderId } = job.data;
     const inferenceJobs = await this.prisma.inferenceJob.findMany({
       where: { orderId },

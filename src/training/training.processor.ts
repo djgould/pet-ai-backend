@@ -1,9 +1,9 @@
-import { Process, Processor } from '@nestjs/bull';
+import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Injectable, Logger } from '@nestjs/common';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { OrderStatus } from '@prisma/client';
 import axios from 'axios';
-import { Job } from 'bull';
+import { Job } from 'bullmq';
 import { InferenceService } from 'src/inference/inference.service';
 import { PrismaService } from 'src/prisma.service';
 import { ReplicateService } from 'src/replicate/replicate.service';
@@ -12,20 +12,32 @@ import { TrainingService } from './training.service';
 
 @Injectable()
 @Processor('training')
-export class TrainingProcessor {
+export class TrainingProcessor extends WorkerHost {
   private readonly logger = new Logger(TrainingProcessor.name);
   constructor(
     private prisma: PrismaService,
     private inferenceService: InferenceService,
     private replicateService: ReplicateService,
     private trainingService: TrainingService,
-  ) {}
+  ) {
+    super();
+  }
 
   /**
    * Called once a minute on all orders with status = TRAINING
    */
-  @Process('trackProgress')
-  async trackProgress(job: Job<{ orderId: string }>) {
+  async process(job: Job<{ orderId: string }, any, 'checkTrainingStatus'>) {
+    switch (job.name) {
+      case 'checkTrainingStatus':
+        return this.checkTrainingStatus(job);
+      default:
+        throw new Error(`Unknown job name: ${job.name}`);
+    }
+  }
+
+  private async checkTrainingStatus(
+    job: Job<{ orderId: string }, any, 'checkTrainingStatus'>,
+  ) {
     const { orderId } = job.data;
 
     this.logger.log(`Checking training progress for order ${orderId}...`);
@@ -82,6 +94,7 @@ export class TrainingProcessor {
       this.logger.log(
         `Training still in progress for order ${orderId}. Status: ${status}`,
       );
+      return response.data;
     }
   }
 }

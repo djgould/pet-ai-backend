@@ -32,6 +32,7 @@ function initializeBullBoard(app: any) {
 async function bootstrap() {
   const instance = createLogger({
     format: winston.format.json(),
+    level: 'info',
     defaultMeta: { service: 'core', env: process.env.ENV },
     transports: [
       new winston.transports.Console({
