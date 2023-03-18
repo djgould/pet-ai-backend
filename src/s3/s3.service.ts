@@ -35,6 +35,10 @@ export class S3Service {
     return this.s3.putObject(request);
   }
 
+  putObjectCommandInputToUrl(request: PutObjectCommandInput): string {
+    return `https://${request.Bucket}.s3.amazonaws.com/${request.Key}`;
+  }
+
   async deleteObject(bucket: string, key: string): Promise<void> {
     await this.s3.deleteObject({ Bucket: bucket, Key: key });
   }

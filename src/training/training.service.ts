@@ -224,7 +224,7 @@ export class TrainingService {
       response.data.pipe(passThrough);
       await promise;
 
-      const s3ModelUrl = `https://${request.Bucket}.s3.amazonaws.com/${request.Key}`;
+      const s3ModelUrl = this.s3Service.putObjectCommandInputToUrl(request);
       await this.prisma.order.update({
         where: { id: orderId },
         data: {
