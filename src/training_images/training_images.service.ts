@@ -49,14 +49,14 @@ export class TrainingImagesService {
       zip.file(trainingImage.originalname, trainingImage.buffer);
     });
 
-    const blob = await zip.generateAsync({ type: 'blob' });
+    const blob = await zip.generateAsync({ type: 'uint8array' });
 
     const request: PutObjectCommandInput = {
       Bucket: 'deving-pet-ai',
       Key: `/training_images/${orderId}-training-images.zip`,
       Body: blob,
       ContentType: 'application/zip',
-      ContentLength: blob.size,
+      ContentLength: blob.byteLength,
     };
     this.s3Service.putObject(request);
     return this.s3Service.putObjectCommandInputToUrl(request);
