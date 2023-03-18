@@ -14,33 +14,6 @@ import { OrderStatus } from '@prisma/client';
 import { InferenceService } from './inference.service';
 import { Job } from 'bullmq';
 
-const PROMPTS = [
-  {
-    prompt: 'a photo of an astronaut riding a horse on mars',
-    negative_prompt: 'bad anatomy',
-  },
-  {
-    prompt: 'a photo of an astronaut riding a horse on mars',
-    negative_prompt: 'bad anatomy',
-  },
-  {
-    prompt: 'a photo of an astronaut riding a horse on mars',
-    negative_prompt: 'bad anatomy',
-  },
-  {
-    prompt: 'a photo of an astronaut riding a horse on mars',
-    negative_prompt: 'bad anatomy',
-  },
-  {
-    prompt: 'a photo of an astronaut riding a horse on mars',
-    negative_prompt: 'bad anatomy',
-  },
-  {
-    prompt: 'a photo of an astronaut riding a horse on mars',
-    negative_prompt: 'bad anatomy',
-  },
-];
-
 @Injectable()
 @Processor('inference')
 export class InferenceProcessor extends WorkerHost {

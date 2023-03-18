@@ -15,28 +15,42 @@ import { Queue } from 'bullmq';
 
 const PROMPTS = [
   {
-    prompt: 'a photo of an astronaut riding a horse on mars',
-    negative_prompt: 'bad anatomy',
+    prompt:
+      'sks dog painting, jedi dog, dog dressed as luke skywalker with a lightsaber in space',
+    negative_prompt:
+      'extra limbs, extra eyes, sideways, blurry, pixelated, extra teeth',
   },
   {
-    prompt: 'a photo of an astronaut riding a horse on mars',
-    negative_prompt: 'bad anatomy',
+    prompt:
+      'sks dog:1.9, a color portrait:.5 as a gangster with a bowler hat:.5 digital drawing, illustration:.7, color subject on gray mottled background:.2, vibrant color:.2',
+    negative_prompt:
+      'multiple subjects, extra limbs, extra eyes, sideways, blurry, pixelated, suit, human',
   },
   {
-    prompt: 'a photo of an astronaut riding a horse on mars',
-    negative_prompt: 'bad anatomy',
+    prompt:
+      'sks dog:1.9 wearing a cowboy hat:.8, sitting alone in a field in front of a farmhouse:.6, without any people, 1890s photo of a dog',
+    negative_prompt: 'human',
   },
   {
-    prompt: 'a photo of an astronaut riding a horse on mars',
-    negative_prompt: 'bad anatomy',
+    prompt:
+      'sks dog:1.9 portrait, linocut print by samuel jessurun de mesquita',
+    negative_prompt: 'extra limbs, bad anatomy, high detail, photograph',
   },
   {
-    prompt: 'a photo of an astronaut riding a horse on mars',
-    negative_prompt: 'bad anatomy',
+    prompt:
+      'sks dog:.4 portrait:.5, tattoo design:1.9, stencil, ink and paper:1.2, traditional tattoo design',
+    negative_prompt: 'extra limbs, bad anatomy, high detail, photograph',
   },
   {
-    prompt: 'a photo of an astronaut riding a horse on mars',
-    negative_prompt: 'bad anatomy',
+    prompt:
+      'sks dog:1.9 portrait, as a king wearing a crown:.5, in the style of a dutch golden age oil painting portrait:.5, warm lighting, chiaroscuro:.3, centered:.2',
+    negative_prompt: 'extra limbs, bad anatomy, high detail, photograph',
+  },
+  {
+    prompt:
+      'Portrait:.5 of subJuJu dog:1.9 wearing a santa hat:.7 next to a bag of gifts:.3 by jean-baptiste monge:.9',
+    negative_prompt:
+      'extra limbs, extra eyes, bad anatomy, bad animal anatomy, mutilated limbs, poorly drawn paws, watermark',
   },
 ];
 
