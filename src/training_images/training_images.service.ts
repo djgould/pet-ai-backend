@@ -43,22 +43,22 @@ export class TrainingImagesService {
   async uploadTrainingImagesZip(
     orderId: string,
     trainingImages: Express.Multer.File[],
-  ) {
+  ): Promise<string> {
     const zip = new JSZip();
     trainingImages.forEach((trainingImage) => {
       zip.file(trainingImage.originalname, trainingImage.buffer);
     });
 
     const blob = await zip.generateAsync({ type: 'blob' });
-    const file = await this.uploadService.upload({
-      originalFileName: `${orderId}-training-images.zip`,
-      data: blob,
-      path: {
-        // See path variables: https://upload.io/docs/path-variables
-        folderPath: '/uploads/{UTC_YEAR}/{UTC_MONTH}/{UTC_DAY}',
-        fileName: `{UNIQUE_DIGITS_8}{ORIGINAL_FILE_EXT}`,
-      },
-    });
-    return file;
+
+    const request: PutObjectCommandInput = {
+      Bucket: 'deving-pet-ai',
+      Key: `/training_images/${orderId}-training-images.zip`,
+      Body: blob,
+      ContentType: 'application/zip',
+      ContentLength: blob.size,
+    };
+    this.s3Service.putObject(request);
+    return this.s3Service.putObjectCommandInputToUrl(request);
   }
 }
