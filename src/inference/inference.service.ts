@@ -180,7 +180,7 @@ export class InferenceService {
 
   private downloadResultImages(urls: string[]): Promise<FileDetails>[] {
     return urls.map(async (url) => {
-      const response = await axios.get(url, { responseType: 'blob' });
+      const response = await axios.get(url, { responseType: 'arraybuffer' });
 
       const file = await this.uploadService.upload({
         originalFileName: 'image.jpeg',
