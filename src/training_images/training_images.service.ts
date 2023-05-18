@@ -15,22 +15,17 @@ export class TrainingImagesService {
   ) {}
 
   async createTrainingImage(trainingImageFile: Express.Multer.File) {
-    const request: PutObjectCommandInput = {
-      Bucket: 'deving-pet-ai',
-      Key: `/training_images/${trainingImageFile.originalname}`,
-      Body: trainingImageFile.buffer,
-      ContentType: trainingImageFile.mimetype,
-      ContentLength: trainingImageFile.size,
-    };
-
-    await this.s3Service.putObject(request);
+    const file = await this.uploadService.upload(
+      new Blob([trainingImageFile.buffer]),
+      trainingImageFile.originalname,
+    );
 
     const metadata = await sharp(trainingImageFile.buffer).metadata();
 
     // create image in database
     return await this.prisma.trainingImage.create({
       data: {
-        url: this.s3Service.putObjectCommandInputToUrl(request),
+        url: file.result?.variants[0],
         name: trainingImageFile.originalname,
         width: metadata.width,
         height: metadata.height,

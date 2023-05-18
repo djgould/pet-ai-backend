@@ -14,6 +14,8 @@ import { CurrentUser } from 'src/user/user.decorator';
 import { User } from '@prisma/client';
 import { OrdersService } from './orders.service';
 import { AuthGuard } from 'src/auth/auth.guard';
+import axios from 'axios';
+import { memoryStorage } from 'multer';
 
 @Controller('orders')
 @UseGuards(AuthGuard)
@@ -26,21 +28,47 @@ export class OrdersController {
     @Req() req: Express.Request,
     @UploadedFiles() trainingImageFiles: Express.Multer.File[],
     @CurrentUser() user: User,
+    @Body('urls') urls: string[],
   ) {
+    const downloadedFiles: Express.Multer.File[] = await Promise.all(
+      urls.map(async (url, i) => {
+        const response = await axios.get(url, { responseType: 'arraybuffer' });
+
+        const fileData = new Uint8Array(response.data);
+        const fileBuffer = Buffer.from(fileData);
+        const filename = url.split('/').pop();
+
+        const file: Express.Multer.File = {
+          fieldname: 'file',
+          originalname: `a photo of sks dog_${i}.jpeg`,
+          encoding: '7bit',
+          mimetype: response.headers['content-type'],
+          size: fileData.byteLength,
+          destination: '',
+          filename: `a photo of sks dog_${i}.jpeg`,
+          path: '',
+          buffer: fileBuffer,
+          stream: null,
+        };
+
+        return file;
+      }),
+    );
+
     const order = await this.ordersService.createPendingOrder(user);
     return this.ordersService.addTrainingImagesToOrder(
       order.id,
-      trainingImageFiles,
+      trainingImageFiles ? trainingImageFiles : downloadedFiles,
     );
-  }
-
-  @Post(':orderId/payment')
-  payAndStartTraining(@Param('orderId') orderId: string) {
-    return this.ordersService.payAndStartTraining(orderId);
   }
 
   @Get()
   async getOrders(@Req() req: Express.Request, @CurrentUser() user: User) {
     return this.ordersService.getOrdersByUserId(user.id);
+  }
+
+  @Get(':id')
+  async getOrder(@Req() req: Express.Request, @Param('id') id: string) {
+    return this.ordersService.getOrderById(id);
   }
 }

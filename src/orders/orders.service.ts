@@ -58,13 +58,21 @@ export class OrdersService {
     });
   }
 
-  async payAndStartTraining(orderId: string) {
-    await this.trainingService.startTraining(orderId);
-  }
-
   async getOrdersByUserId(userId: string) {
     return await this.prisma.order.findMany({
       where: { userId },
+      include: {
+        trainingImages: true,
+        resultImages: true,
+        inferenceJobs: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async getOrderById(orderId: string) {
+    return await this.prisma.order.findUnique({
+      where: { id: orderId },
       include: {
         trainingImages: true,
         resultImages: true,

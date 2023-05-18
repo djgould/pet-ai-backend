@@ -44,6 +44,14 @@ export class AppConfig {
   @IsNotEmpty()
   @IsString()
   AWS_SECRET_ACCESS_KEY: string;
+
+  @IsNotEmpty()
+  @IsString()
+  STRIPE_CHECKOUT_RETURN_URL: string;
+
+  @IsNotEmpty()
+  @IsString()
+  STRIPE_CHECKOUT_CANCEL_URL: string;
 }
 
 export async function validateConfig(config: Record<string, any>) {

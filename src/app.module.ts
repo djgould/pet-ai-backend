@@ -23,6 +23,8 @@ import { BullService } from './bull/bull.service';
 import { OrdersModule } from './orders/orders.module';
 import { AppConfig, validateConfig } from './app.config';
 import { validate } from 'class-validator';
+import { StripeController } from './stripe/stripe.controller';
+import { StripeService } from './stripe/stripe.service';
 
 declare global {
   namespace Express {
@@ -54,7 +56,12 @@ declare global {
     InferenceModule,
     OrdersModule,
   ],
-  controllers: [AppController, OrdersController, HealthController],
+  controllers: [
+    AppController,
+    OrdersController,
+    HealthController,
+    StripeController,
+  ],
   providers: [
     AppService,
     PrismaService,
@@ -64,6 +71,7 @@ declare global {
     UserService,
     S3Service,
     BullService,
+    StripeService,
   ],
   exports: [
     PrismaService,
@@ -78,6 +86,12 @@ export class AppModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(ClerkExpressWithAuth())
-      .forRoutes({ path: '*', method: RequestMethod.ALL });
+      .forRoutes(
+        { path: '*', method: RequestMethod.GET },
+        { path: '*', method: RequestMethod.POST },
+        { path: '*', method: RequestMethod.PUT },
+        { path: '*', method: RequestMethod.DELETE },
+        { path: '*', method: RequestMethod.PATCH },
+      );
   }
 }

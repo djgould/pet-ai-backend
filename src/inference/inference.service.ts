@@ -4,7 +4,7 @@ import axios, { AxiosResponse } from 'axios';
 import { ValueOf } from 'ts-essentials';
 import { OrdersService } from 'src/orders/orders.service';
 import { PrismaService } from 'src/prisma.service';
-import { UploadService } from 'src/upload/upload.service';
+import { UploadResponse, UploadService } from 'src/upload/upload.service';
 import { stat } from 'fs';
 import { ReplicateService } from 'src/replicate/replicate.service';
 import { ReplicateGetPrediction } from 'src/replicate/replicate.interface';
@@ -137,7 +137,7 @@ export class InferenceService {
     );
     await Promise.all(
       files.map((file) => {
-        this.createResultImage(orderId, file.fileUrl);
+        this.createResultImage(orderId, file.result.variants[0]);
       }),
     );
 
@@ -192,19 +192,16 @@ export class InferenceService {
     });
   }
 
-  private downloadResultImages(urls: string[]): Promise<FileDetails>[] {
+  private downloadResultImages(urls: string[]): Promise<UploadResponse>[] {
     return urls.map(async (url) => {
-      const response = await axios.get(url, { responseType: 'arraybuffer' });
-
-      const file = await this.uploadService.upload({
-        originalFileName: 'image.jpeg',
-        data: response.data,
-        path: {
-          // See path variables: https://upload.io/docs/path-variables
-          folderPath: '/uploads/{UTC_YEAR}/{UTC_MONTH}/{UTC_DAY}',
-          fileName: `{UNIQUE_DIGITS_8}{ORIGINAL_FILE_EXT}`,
-        },
+      const response = await axios.get<ArrayBuffer>(url, {
+        responseType: 'arraybuffer',
       });
+
+      const file = await this.uploadService.upload(
+        new Blob([response.data], { type: 'image/jpeg' }),
+        'image.jpeg',
+      );
 
       return file;
     });
