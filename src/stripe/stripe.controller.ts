@@ -31,7 +31,6 @@ export class StripeController {
   async handleStripeWebhook(
     @Req() req: RawBodyRequest<Request>,
     @Headers('stripe-signature') sig: string,
-    @Res() response: Express.Response,
   ) {
     this.logger.log(req.rawBody, 'Received Stripe webhook');
     let event;
