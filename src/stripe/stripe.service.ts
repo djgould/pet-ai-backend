@@ -53,7 +53,7 @@ export class StripeService {
     );
   }
 
-  async createSession(orderId: string) {
+  async createSession(orderId: string, returnUrl: string, cancelUrl: string) {
     return await this.stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
@@ -71,8 +71,8 @@ export class StripeService {
       ],
       client_reference_id: orderId,
       mode: 'payment',
-      success_url: this.configService.get('STRIPE_CHECKOUT_RETURN_URL'),
-      cancel_url: this.configService.get('STRIPE_CHECKOUT_CANCEL_URL'),
+      success_url: returnUrl,
+      cancel_url: cancelUrl,
     });
   }
 

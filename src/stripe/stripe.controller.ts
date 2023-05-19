@@ -21,8 +21,16 @@ export class StripeController {
   constructor(private stripeService: StripeService) {}
 
   @Post('/create-checkout-session')
-  async createCheckoutSession(@Body('order_id') order_id: string) {
-    const session = await this.stripeService.createSession(order_id);
+  async createCheckoutSession(
+    @Body('order_id') order_id: string,
+    @Body('return_url') returnUrl: string,
+    @Body('cancel_url') cancelUrl: string,
+  ) {
+    const session = await this.stripeService.createSession(
+      order_id,
+      returnUrl,
+      cancelUrl,
+    );
 
     return session;
   }
