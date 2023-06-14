@@ -3,6 +3,7 @@ import { forwardRef, Inject, MiddlewareConsumer, Module } from '@nestjs/common';
 import { Queue } from 'bullmq';
 import { AppModule } from 'src/app.module';
 import { queuePool } from 'src/bull/bull.service';
+import { EmailModule } from 'src/email/email.module';
 import { InferenceModule } from 'src/inference/inference.module';
 import { TrainingModule } from 'src/training/training.module';
 import { OrdersController } from './orders.controller';
@@ -15,8 +16,9 @@ import { OrdersService } from './orders.service';
       name: 'orders',
     }),
     forwardRef(() => AppModule),
-    InferenceModule,
+    forwardRef(() => InferenceModule),
     TrainingModule,
+    EmailModule,
   ],
   controllers: [OrdersController],
   providers: [OrdersService, OrdersProcessor],

@@ -3,6 +3,7 @@ import { forwardRef, Inject, MiddlewareConsumer, Module } from '@nestjs/common';
 import { Queue } from 'bullmq';
 import { AppModule } from 'src/app.module';
 import { queuePool } from 'src/bull/bull.service';
+import { OrdersModule } from 'src/orders/orders.module';
 import { InferenceProcessor } from './inference.processor';
 import { InferenceService } from './inference.service';
 
@@ -14,6 +15,7 @@ import { InferenceService } from './inference.service';
     BullModule.registerQueue({
       name: 'inference',
     }),
+    OrdersModule,
   ],
 })
 export class InferenceModule {

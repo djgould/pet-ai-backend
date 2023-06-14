@@ -19,7 +19,6 @@ export class OrdersService {
     private prisma: PrismaService,
     private trainingImageService: TrainingImagesService,
     private emailsService: EmailService,
-    private usersService: UserService,
   ) {
     ordersQueue.add(
       'checkTrainingStatus',

@@ -15,7 +15,7 @@ import { queuePool } from 'src/bull/bull.service';
       name: 'training',
     }),
     forwardRef(() => AppModule),
-    InferenceModule,
+    forwardRef(() => InferenceModule),
   ],
 })
 export class TrainingModule {
