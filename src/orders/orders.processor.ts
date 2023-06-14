@@ -57,4 +57,6 @@ export class OrdersProcessor extends WorkerHost {
       this.inferenceService.checkInferenceStatus(order.id);
     });
   }
+
+  private async handleCompletedTrainingOrder(orderId: string) {}
 }

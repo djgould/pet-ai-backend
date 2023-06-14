@@ -25,6 +25,7 @@ import { AppConfig, validateConfig } from './app.config';
 import { validate } from 'class-validator';
 import { StripeController } from './stripe/stripe.controller';
 import { StripeService } from './stripe/stripe.service';
+import { EmailService } from './email/email.service';
 
 declare global {
   namespace Express {
@@ -72,6 +73,7 @@ declare global {
     S3Service,
     BullService,
     StripeService,
+    EmailService,
   ],
   exports: [
     PrismaService,

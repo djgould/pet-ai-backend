@@ -1,8 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { EmailService } from 'src/email/email.service';
 import { OrdersService } from 'src/orders/orders.service';
 import { PrismaService } from 'src/prisma.service';
 import { TrainingService } from 'src/training/training.service';
+import { UserService } from 'src/user/user.service';
 import Stripe from 'stripe';
 
 @Injectable()
@@ -14,6 +16,8 @@ export class StripeService {
     private prisma: PrismaService,
     private trainingService: TrainingService,
     private configService: ConfigService,
+    private emailsService: EmailService,
+    private userService: UserService,
   ) {
     this.stripe = new Stripe(configService.get('STRIPE_SECRET_KEY'), {
       apiVersion: '2022-11-15',
@@ -32,6 +36,8 @@ export class StripeService {
     if (!order) {
       throw new Error(`No order found for id: ${clientReferenceId}`);
     }
+
+    this.emailsService.sendPaymentReceivedEmail(order.id);
 
     await this.trainingService.startTraining(order.id);
   }

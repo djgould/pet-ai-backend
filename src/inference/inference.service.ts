@@ -63,6 +63,7 @@ export class InferenceService {
     private prisma: PrismaService,
     private uploadService: UploadService,
     private replicateService: ReplicateService,
+    private ordersService: OrdersService,
   ) {}
 
   async startInference(orderId: string) {
@@ -157,10 +158,7 @@ export class InferenceService {
     if (statuses.every((status) => status === 'succeeded')) {
       this.logger.log(`All inference jobs succeeded for order ${orderId}`);
 
-      return this.prisma.order.update({
-        where: { id: orderId },
-        data: { status: OrderStatus.COMPLETED },
-      });
+      return this.ordersService.handleCompletedOrder(orderId);
     }
   }
 
