@@ -52,6 +52,10 @@ export class AppConfig {
   @IsNotEmpty()
   @IsString()
   STRIPE_CHECKOUT_CANCEL_URL: string;
+
+  @IsString()
+  @IsOptional()
+  RESEND_API_KEY: string;
 }
 
 export async function validateConfig(config: Record<string, any>) {

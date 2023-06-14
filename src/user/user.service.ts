@@ -1,3 +1,4 @@
+import clerkClient, { User } from '@clerk/clerk-sdk-node';
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
 
@@ -19,5 +20,12 @@ export class UserService {
         uid: userId,
       },
     });
+  }
+
+  async getClerkUserFromId(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+    return clerkClient.users.getUser(user.uid);
   }
 }

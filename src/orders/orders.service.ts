@@ -6,6 +6,9 @@ import { OrderStatus, User } from '@prisma/client';
 import { InferenceService } from 'src/inference/inference.service';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
+import { Emails } from 'resend/build/src/emails/emails';
+import { EmailService } from 'src/email/email.service';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class OrdersService {
@@ -15,8 +18,8 @@ export class OrdersService {
     @InjectQueue('orders') private ordersQueue: Queue,
     private prisma: PrismaService,
     private trainingImageService: TrainingImagesService,
-    private trainingService: TrainingService,
-    private inferenceService: InferenceService,
+    private emailsService: EmailService,
+    private usersService: UserService,
   ) {
     ordersQueue.add(
       'checkTrainingStatus',
@@ -79,5 +82,16 @@ export class OrdersService {
         inferenceJobs: true,
       },
     });
+  }
+
+  async handleCompletedOrder(orderId: string) {
+    const order = await this.prisma.order.update({
+      where: { id: orderId },
+      data: { status: OrderStatus.COMPLETED },
+    });
+
+    this.emailsService.sendOrderFinishedEmail(orderId);
+
+    return order;
   }
 }
