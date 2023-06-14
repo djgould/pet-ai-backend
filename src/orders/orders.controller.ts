@@ -11,11 +11,25 @@ import {
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { CurrentUser } from 'src/user/user.decorator';
-import { User } from '@prisma/client';
+import { Order, User } from '@prisma/client';
 import { OrdersService } from './orders.service';
 import { AuthGuard } from 'src/auth/auth.guard';
 import axios from 'axios';
 import { memoryStorage } from 'multer';
+
+export type WithETA<T> = T & { eta: number };
+
+function withEta(order: Order): WithETA<Order> {
+  // calculate eta by subtracting the elapsed time from 1900 seconds
+  const eta =
+    1900 - Math.floor((Date.now() - order.createdAt.getTime()) / 1000);
+
+  if (eta < 0) {
+    return { ...order, eta: 0 };
+  }
+
+  return { ...order, eta };
+}
 
 @Controller('orders')
 @UseGuards(AuthGuard)
@@ -64,11 +78,13 @@ export class OrdersController {
 
   @Get()
   async getOrders(@Req() req: Express.Request, @CurrentUser() user: User) {
-    return this.ordersService.getOrdersByUserId(user.id);
+    const orders = await this.ordersService.getOrdersByUserId(user.id);
+    return orders.map(withEta);
   }
 
   @Get(':id')
   async getOrder(@Req() req: Express.Request, @Param('id') id: string) {
-    return this.ordersService.getOrderById(id);
+    const order = await this.ordersService.getOrderById(id);
+    return withEta(order);
   }
 }
