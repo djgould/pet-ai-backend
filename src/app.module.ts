@@ -27,6 +27,8 @@ import { StripeController } from './stripe/stripe.controller';
 import { StripeService } from './stripe/stripe.service';
 import { EmailService } from './email/email.service';
 import { EmailModule } from './email/email.module';
+import { CommandModule } from 'nestjs-command';
+import { OrdersCommand } from './orders/orders.command';
 
 declare global {
   namespace Express {
@@ -58,6 +60,7 @@ declare global {
     InferenceModule,
     OrdersModule,
     EmailModule,
+    CommandModule,
   ],
   controllers: [
     AppController,
@@ -75,6 +78,7 @@ declare global {
     S3Service,
     BullService,
     StripeService,
+    OrdersCommand,
   ],
   exports: [
     PrismaService,

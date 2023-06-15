@@ -9,6 +9,10 @@ import { Queue } from 'bullmq';
 import { Emails } from 'resend/build/src/emails/emails';
 import { EmailService } from 'src/email/email.service';
 import { UserService } from 'src/user/user.service';
+import * as JSZip from 'jszip';
+import axios from 'axios';
+import { S3Service } from 'src/s3/s3.service';
+import { PutObjectCommandInput } from '@aws-sdk/client-s3';
 
 @Injectable()
 export class OrdersService {
@@ -19,6 +23,7 @@ export class OrdersService {
     private prisma: PrismaService,
     private trainingImageService: TrainingImagesService,
     private emailsService: EmailService,
+    private s3Service: S3Service,
   ) {
     ordersQueue.add(
       'checkTrainingStatus',
@@ -90,7 +95,44 @@ export class OrdersService {
     });
 
     this.emailsService.sendOrderFinishedEmail(orderId);
+    this.uploadResultImages(orderId);
 
     return order;
+  }
+
+  async uploadResultImages(orderId: string) {
+    const resultImages = await this.prisma.resultImage.findMany({
+      where: { orderId },
+    });
+
+    // zip up result images and upload to s3 using s3 service
+    const zip = new JSZip();
+    await Promise.all(
+      resultImages.map(async (resultImage, i) => {
+        // download image from resultImage.url using axios and add to zip
+        const response = await axios.get(resultImage.url, {
+          responseType: 'arraybuffer',
+        });
+        zip.file(`image-${i}.jpeg`, response.data);
+        console.log(`image-${i}.jpeg added to zip`);
+      }),
+    );
+
+    console.log('images downloaded');
+
+    const blob = await zip.generateAsync({ type: 'uint8array' });
+
+    const request: PutObjectCommandInput = {
+      Bucket: 'deving-pet-ai',
+      Key: `/result_images/${orderId}-result-images.zip`,
+      Body: blob,
+      ContentType: 'application/zip',
+      ContentLength: blob.byteLength,
+    };
+
+    console.log('request', request);
+
+    await this.s3Service.putObject(request);
+    return this.s3Service.putObjectCommandInputToUrl(request);
   }
 }
