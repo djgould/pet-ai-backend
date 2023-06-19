@@ -62,7 +62,7 @@ model InferenceJob {
   replicateId       String?
   status            ReplicateStatus
   prompt            String
-  negativePrompt    String
+  negativePrompt    String?
   version           String
   width             Int
   height            Int
