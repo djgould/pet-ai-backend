@@ -4,7 +4,9 @@ import {
   Get,
   Param,
   Post,
+  Query,
   Req,
+  Res,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
@@ -16,6 +18,9 @@ import { OrdersService } from './orders.service';
 import { AuthGuard } from 'src/auth/auth.guard';
 import axios from 'axios';
 import { memoryStorage } from 'multer';
+import { range } from 'rxjs';
+import { UserService } from 'src/user/user.service';
+import { TrainingService } from 'src/training/training.service';
 
 export type WithETA<T> = T & { eta: number };
 
@@ -34,7 +39,25 @@ function withEta(order: Order): WithETA<Order> {
 @Controller('orders')
 @UseGuards(AuthGuard)
 export class OrdersController {
-  constructor(private ordersService: OrdersService) {}
+  constructor(
+    private ordersService: OrdersService,
+    private userService: UserService,
+    private trainingService: TrainingService,
+  ) {}
+
+  @Post(':id/restart')
+  async restartTraining(
+    @Req() req: Express.Request,
+    @CurrentUser() user: User,
+    @Param('id') id: string,
+  ) {
+    const clerkUser = await this.userService.getClerkUserFromId(user.id);
+    if (clerkUser.publicMetadata.role !== 'admin') {
+      throw new Error('Unauthorized');
+    }
+
+    await this.trainingService.startTraining(id);
+  }
 
   @Post()
   @UseInterceptors(FilesInterceptor('files'))
@@ -77,9 +100,37 @@ export class OrdersController {
   }
 
   @Get()
-  async getOrders(@Req() req: Express.Request, @CurrentUser() user: User) {
-    const orders = await this.ordersService.getOrdersByUserId(user.id);
-    return orders.map(withEta);
+  async getOrders(
+    @Req() req: Express.Request,
+    @Res() res: any,
+    @CurrentUser() user: User,
+    @Query('range') range: string,
+  ) {
+    const clerkUser = await this.userService.getClerkUserFromId(user.id);
+    if (clerkUser.publicMetadata.role === 'admin') {
+      const orders = await this.ordersService.getAllOrders(range);
+      const rangeStart = 0; // This should be calculated based on your pagination logic
+      const rangeEnd = orders.length > 0 ? orders.length - 1 : 0;
+
+      res.set(
+        'Content-Range',
+        `items ${rangeStart}-${rangeEnd}/${orders.length}`,
+      );
+
+      return res.json(orders.map(withEta));
+    }
+
+    const orders = await this.ordersService.getOrdersByUserId(user.id, range);
+    const rangeStart = 0; // This should be calculated based on your pagination logic
+    const rangeEnd = orders.length > 0 ? orders.length - 1 : 0;
+
+    // Add Content-Range header
+    res.set(
+      'Content-Range',
+      `items ${rangeStart}-${rangeEnd}/${orders.length}`,
+    );
+
+    return res.json(orders.map(withEta));
   }
 
   @Get(':id')

@@ -65,7 +65,55 @@ export class OrdersService {
     });
   }
 
-  async getOrdersByUserId(userId: string) {
+  async getAllOrders(range?: string) {
+    if (range) {
+      const rangeValues = JSON.parse(range);
+
+      const start = rangeValues[0]; // 0
+      const end = rangeValues[1]; // 9
+
+      return await this.prisma.order.findMany({
+        include: {
+          trainingImages: true,
+          resultImages: true,
+          inferenceJobs: true,
+        },
+        orderBy: { createdAt: 'desc' },
+        skip: start,
+        take: end - start + 1,
+      });
+    }
+
+    return await this.prisma.order.findMany({
+      include: {
+        trainingImages: true,
+        resultImages: true,
+        inferenceJobs: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async getOrdersByUserId(userId: string, range?: string) {
+    if (range) {
+      const rangeValues = JSON.parse(range);
+
+      const start = rangeValues[0]; // 0
+      const end = rangeValues[1]; // 9
+
+      return await this.prisma.order.findMany({
+        where: { userId },
+        include: {
+          trainingImages: true,
+          resultImages: true,
+          inferenceJobs: true,
+        },
+        orderBy: { createdAt: 'desc' },
+        skip: start,
+        take: end - start + 1,
+      });
+    }
+
     return await this.prisma.order.findMany({
       where: { userId },
       include: {

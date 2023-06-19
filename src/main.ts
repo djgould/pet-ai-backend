@@ -60,7 +60,9 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe());
   const { addQueue } = initializeBullBoard(app);
 
-  app.enableCors();
+  app.enableCors({
+    exposedHeaders: ['Content-Range'],
+  });
   await app.listen(process.env.PORT || 3000);
 
   const queues = getBullBoardQueues();
