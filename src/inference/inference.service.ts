@@ -16,41 +16,44 @@ import { Queue } from 'bullmq';
 const PROMPTS = [
   {
     prompt:
-      'sks dog painting, jedi dog, dog dressed as luke skywalker with a lightsaber in space',
-    negative_prompt:
-      'extra limbs, extra eyes, sideways, blurry, pixelated, extra teeth',
+      'a digital portrait of <s1> dog dressed as a jedi, holding a lightsaber, trending on artstation, in the style of omar rubio',
   },
   {
     prompt:
-      'sks dog:1.9, a color portrait:.5 as a gangster with a bowler hat:.5 digital drawing, illustration:.7, color subject on gray mottled background:.2, vibrant color:.2',
-    negative_prompt:
-      'multiple subjects, extra limbs, extra eyes, sideways, blurry, pixelated, suit, human',
+      'a digital portrait <s1> dog dressed as a king, wearing a crown and a red robe, gray gradient background, 4k, trending on artstation, in the style of Jean Auguste Dominique Ingres',
   },
   {
     prompt:
-      'sks dog:1.9 wearing a cowboy hat:.8, sitting alone in a field in front of a farmhouse:.6, without any people, 1890s photo of a dog',
-    negative_prompt: 'human',
+      'a digital portrait of <s1> dog dressed as an astronaut, wearing a space helmet, space background with planet, ai generated',
   },
   {
     prompt:
-      'sks dog:1.9 portrait, linocut print by samuel jessurun de mesquita',
+      'a painting of <s1> dog dressed as a cowboy, wearing a cowboy hat, by Charles Marion Russell, Frederic Remington and J. K. Ralston',
+  },
+  {
+    prompt:
+      'a digital portrait of <s1> dog dressed as a santa, wearing a santa hat, in the style of a golden age painting',
+  },
+  {
+    prompt:
+      'a digital portrait of <s1> dog dressed as a pirate, wearing a pirate hat, trending on artstation, caribbean background',
     negative_prompt: 'extra limbs, bad anatomy, high detail, photograph',
   },
   {
     prompt:
-      'sks dog:.4 portrait:.5, tattoo design:1.9, stencil, ink and paper:1.2, traditional tattoo design',
-    negative_prompt: 'extra limbs, bad anatomy, high detail, photograph',
+      'a digital portrait of <s1> dog dressed as a gangster, wearing a hat, trending on artstation, inside a smoky candle lit pub',
   },
   {
     prompt:
-      'sks dog:1.9 portrait, as a king wearing a crown:.5, in the style of a dutch golden age oil painting portrait:.5, warm lighting, chiaroscuro:.3, centered:.2',
-    negative_prompt: 'extra limbs, bad anatomy, high detail, photograph',
+      'a digital portrait of <s1> dog wearing a suit and tie, on a green field by the beach, in new england summer, trending on artstation',
   },
   {
     prompt:
-      'Portrait:.5 of subJuJu dog:1.9 wearing a santa hat:.7 next to a bag of gifts:.3 by jean-baptiste monge:.9',
-    negative_prompt:
-      'extra limbs, extra eyes, bad anatomy, bad animal anatomy, mutilated limbs, poorly drawn paws, watermark',
+      'a digital portrait of <s1> dog dressed as a superhero, flying with city skyline in background, trending on artstation',
+  },
+  {
+    prompt:
+      'an impressionist painting of <s1> dog, sunset with dramatic lighting, in the style of claude monet, colorful oil painting',
   },
 ];
 

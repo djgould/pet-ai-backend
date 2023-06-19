@@ -118,8 +118,6 @@ export class OrdersService {
       }),
     );
 
-    console.log('images downloaded');
-
     const blob = await zip.generateAsync({ type: 'uint8array' });
 
     const request: PutObjectCommandInput = {
@@ -129,8 +127,6 @@ export class OrdersService {
       ContentType: 'application/zip',
       ContentLength: blob.byteLength,
     };
-
-    console.log('request', request);
 
     await this.s3Service.putObject(request);
     return this.s3Service.putObjectCommandInputToUrl(request);

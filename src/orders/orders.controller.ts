@@ -54,12 +54,12 @@ export class OrdersController {
 
         const file: Express.Multer.File = {
           fieldname: 'file',
-          originalname: `a photo of sks dog_${i}.jpeg`,
+          originalname: `a photo of <s1> dog_${i}.jpeg`,
           encoding: '7bit',
           mimetype: response.headers['content-type'],
           size: fileData.byteLength,
           destination: '',
-          filename: `a photo of sks dog_${i}.jpeg`,
+          filename: `a photo of <s1> dog_${i}.jpeg`,
           path: '',
           buffer: fileBuffer,
           stream: null,
