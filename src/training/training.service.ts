@@ -176,6 +176,7 @@ export class TrainingService {
         status: OrderStatus.TRAINING,
         replicateTrainingId: response.data.id,
         replicateTrainingStatus: response.data.status,
+        trainingStartedAt: new Date(),
       },
     });
   }
