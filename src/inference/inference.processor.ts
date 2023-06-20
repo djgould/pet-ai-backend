@@ -65,7 +65,7 @@ export class InferenceProcessor extends WorkerHost {
           predictionId,
         );
 
-        if (response.data.status === 'succeeded') {
+        if (response.data.status === 'succeeded' && response.data.output) {
           this.logger.log(
             `InferenceJob ${predictionId} succeeded for order ${orderId}`,
           );
