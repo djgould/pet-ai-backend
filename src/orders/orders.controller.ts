@@ -27,7 +27,7 @@ export type WithETA<T> = T & { eta: number };
 function withEta(order: Order): WithETA<Order> {
   // calculate eta by subtracting the elapsed time from 1900 seconds
   const eta =
-    1900 - Math.floor((Date.now() - order.createdAt.getTime()) / 1000);
+    1900 - Math.floor((Date.now() - order.trainingStartedAt.getTime()) / 1000);
 
   if (eta < 0) {
     return { ...order, eta: 0 };
