@@ -1,4 +1,4 @@
-import { NestFactory } from '@nestjs/core';
+import { NestFactory, HttpAdapterHost } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { PrismaService } from './prisma.service';
 import * as multer from 'multer';
@@ -10,6 +10,8 @@ import {
   utilities as nestWinstonModuleUtilities,
 } from 'nest-winston';
 import { WinstonTransport as AxiomTransport } from '@axiomhq/axiom-node';
+import * as Sentry from '@sentry/node';
+import { SentryFilter } from './sentry.filter';
 import { getBullBoardQueues } from './bull/bull.service';
 import { ExpressAdapter } from '@bull-board/express';
 import { createBullBoard } from '@bull-board/api';
@@ -56,6 +58,13 @@ async function bootstrap() {
       instance,
     }),
   });
+
+  Sentry.init({
+    dsn: process.env.SENTRY_DNS,
+  });
+
+  const { httpAdapter } = app.get(HttpAdapterHost);
+  app.useGlobalFilters(new SentryFilter(httpAdapter));
 
   app.useGlobalPipes(new ValidationPipe());
   const { addQueue } = initializeBullBoard(app);
