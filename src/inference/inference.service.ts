@@ -24,7 +24,7 @@ const PROMPTS = [
   },
   {
     prompt:
-      'a digital portrait of <s1> dog dressed as an astronaut, wearing a space helmet, space background with planet, ai generated',
+      'a digital portrait of <s1> dog dressed as an astronaut, wearing a space helmet, space background with planet',
   },
   {
     prompt:
