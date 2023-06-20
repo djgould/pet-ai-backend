@@ -21,6 +21,7 @@ import { memoryStorage } from 'multer';
 import { range } from 'rxjs';
 import { UserService } from 'src/user/user.service';
 import { TrainingService } from 'src/training/training.service';
+import { InferenceService } from 'src/inference/inference.service';
 
 export type WithETA<T> = T & { eta: number };
 
@@ -44,6 +45,7 @@ export class OrdersController {
     private ordersService: OrdersService,
     private userService: UserService,
     private trainingService: TrainingService,
+    private inferenceService: InferenceService,
   ) {}
 
   @Post(':id/restart')
@@ -58,6 +60,20 @@ export class OrdersController {
     }
 
     await this.trainingService.startTraining(id);
+  }
+
+  @Post(':id/restart-inference')
+  async restartInference(
+    @Req() req: Express.Request,
+    @CurrentUser() user: User,
+    @Param('id') id: string,
+  ) {
+    const clerkUser = await this.userService.getClerkUserFromId(user.id);
+    if (clerkUser.publicMetadata.role !== 'admin') {
+      throw new Error('Unauthorized');
+    }
+
+    await this.inferenceService.startInference(id);
   }
 
   @Post()
