@@ -28,11 +28,11 @@ const PROMPTS = [
   },
   {
     prompt:
-      'a painting of <s1> dog dressed as a cowboy, wearing a cowboy hat, by Charles Marion Russell, Frederic Remington and J. K. Ralston',
+      'a digital portrait of <s1> dog dressed as a cowboy, wearing a cowboy hat, blurry Mojave Desert background',
   },
   {
     prompt:
-      'a digital portrait of <s1> dog dressed as a santa, wearing a santa hat, in the style of a golden age painting',
+      'a digital portrait of <s1> dog dressed as a santa, wearing a santa hat, gray glowing background',
   },
   {
     prompt:
