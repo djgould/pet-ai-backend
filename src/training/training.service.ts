@@ -123,7 +123,7 @@ export class TrainingService {
         sample_batch_size: 4,
 
         // Num Train Epochs
-        num_train_epochs: 1,
+        num_train_epochs: 400,
 
         // Total number of training steps to perform.  If provided, overrides
         // num_train_epochs.
@@ -138,7 +138,7 @@ export class TrainingService {
         gradient_checkpointing: true,
 
         // Initial learning rate (after the potential warmup period) to use.
-        learning_rate: 2e-6,
+        learning_rate: 5e-7,
 
         // Scale the learning rate by the number of GPUs, gradient accumulation
         // steps, and batch size.
