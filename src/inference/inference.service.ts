@@ -90,7 +90,7 @@ export class InferenceService {
           prompt_strength: 0.8,
           num_outputs: 10,
           num_inference_steps: 50,
-          guidance_scale: 7.5,
+          guidance_scale: 11,
         },
       };
 

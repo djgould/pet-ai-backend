@@ -117,7 +117,7 @@ export class TrainingService {
         train_text_encoder: false,
 
         // Batch size (per device) for the training dataloader.
-        train_batch_size: 2,
+        train_batch_size: 5,
 
         // Batch size (per device) for sampling images.
         sample_batch_size: 4,
@@ -131,7 +131,7 @@ export class TrainingService {
 
         // Number of updates steps to accumulate before performing a
         // backward/update pass.
-        gradient_accumulation_steps: 2,
+        gradient_accumulation_steps: 1,
 
         // Whether or not to use gradient checkpointing to save memory at the
         // expense of slower backward pass.
