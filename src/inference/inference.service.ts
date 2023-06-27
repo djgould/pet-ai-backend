@@ -80,7 +80,7 @@ export class InferenceService {
     for (const prompt of PROMPTS) {
       const request = {
         version:
-          '2c3a6e914a191bfe06939116d132ce3c6d277c9b8d83ee65e2251bea36a03a1a',
+          '97872e26144a42e9820d870955b18adc294364d9515936223a460f85ce380308',
         input: {
           model_url: order.trainedModelUrl,
           prompt: prompt.prompt,
