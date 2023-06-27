@@ -143,7 +143,7 @@ export class OrdersService {
     });
 
     this.emailsService.sendOrderFinishedEmail(orderId);
-    this.uploadResultImages(orderId);
+    this.uploadResultImages(orderId).catch(console.error);
 
     return order;
   }
