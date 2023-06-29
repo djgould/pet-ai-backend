@@ -17,43 +17,53 @@ const PROMPTS = [
   {
     prompt:
       'a digital portrait of <s1> dog dressed as a jedi, holding a lightsaber, trending on artstation, in the style of omar rubio',
+    label: 'jedi',
   },
   {
     prompt:
       'a digital portrait <s1> dog dressed as a king, wearing a crown and a red robe, gray gradient background, 4k, trending on artstation, in the style of Jean Auguste Dominique Ingres',
+    label: 'king',
   },
   {
     prompt:
       'a digital portrait of <s1> dog dressed as an astronaut, wearing a space helmet, space background with planet',
+    label: 'astronaut',
   },
   {
     prompt:
       'a digital portrait of <s1> dog dressed as a cowboy, wearing a cowboy hat, blurry Mojave Desert background',
+    label: 'cowboy',
   },
   {
     prompt:
       'a digital portrait of <s1> dog dressed as a santa, wearing a santa hat, gray glowing background',
+    label: 'santa',
   },
   {
     prompt:
       'a digital portrait of <s1> dog dressed as a pirate, wearing a pirate hat, trending on artstation, caribbean background',
     negative_prompt: 'extra limbs, bad anatomy, high detail, photograph',
+    label: 'pirate',
   },
   {
     prompt:
       'a digital portrait of <s1> dog dressed as a gangster, wearing a hat, trending on artstation, inside a smoky candle lit pub',
+    label: 'mafia',
   },
   {
     prompt:
-      'a digital portrait of <s1> dog wearing a suit and tie, on a green field by the beach, in new england summer, trending on artstation',
+      'a digital portrait of <s1> dog wearing a suit and tie, with a suitcase on a city street, trending on artstation',
+    label: 'businessman',
   },
   {
     prompt:
       'a digital portrait of <s1> dog dressed as a superhero, flying with city skyline in background, trending on artstation',
+    label: 'superhero',
   },
   {
     prompt:
       'an impressionist painting of <s1> dog, sunset with dramatic lighting, in the style of claude monet, colorful oil painting',
+    label: 'impressionist',
   },
 ];
 
@@ -100,6 +110,7 @@ export class InferenceService {
         data: {
           replicateId: response.data.id,
           status: response.data.status,
+          label: prompt.label,
           prompt: request.input.prompt,
           negativePrompt: request.input.negative_prompt,
           version: request.version,
@@ -129,7 +140,7 @@ export class InferenceService {
     inferenceJobId: string,
     response: AxiosResponse<ReplicateGetPrediction>,
   ) {
-    await this.prisma.inferenceJob.update({
+    const inferenceJob = await this.prisma.inferenceJob.update({
       where: { id: inferenceJobId },
       data: {
         status: response.data.status,
@@ -141,7 +152,11 @@ export class InferenceService {
     );
     await Promise.all(
       files.map((file) => {
-        this.createResultImage(orderId, file.result.variants[0]);
+        this.createResultImage(
+          orderId,
+          file.result.variants[0],
+          inferenceJob.label,
+        );
       }),
     );
 
@@ -208,10 +223,15 @@ export class InferenceService {
     });
   }
 
-  private async createResultImage(orderId: string, url: string) {
+  private async createResultImage(
+    orderId: string,
+    url: string,
+    label?: string,
+  ) {
     return this.prisma.resultImage.create({
       data: {
         url: url,
+        label: label,
         order: {
           connect: {
             id: orderId,

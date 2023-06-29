@@ -62,6 +62,7 @@ model InferenceJob {
   updatedAt         DateTime        @updatedAt
   replicateId       String?
   status            ReplicateStatus
+  label             String?
   prompt            String
   negativePrompt    String?
   version           String
@@ -117,4 +118,5 @@ model ResultImage {
   url       String
   order     Order?   @relation(fields: [orderId], references: [id])
   orderId   String?
+  label     String?
 }

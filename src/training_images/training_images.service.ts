@@ -15,12 +15,14 @@ export class TrainingImagesService {
   ) {}
 
   async createTrainingImage(trainingImageFile: Express.Multer.File) {
+    const resized = await sharp(trainingImageFile.buffer).resize(768, 768);
+
     const file = await this.uploadService.upload(
-      new Blob([trainingImageFile.buffer]),
+      new Blob([await resized.toBuffer()]),
       trainingImageFile.originalname,
     );
 
-    const metadata = await sharp(trainingImageFile.buffer).metadata();
+    const metadata = await resized.metadata();
 
     // create image in database
     return await this.prisma.trainingImage.create({
