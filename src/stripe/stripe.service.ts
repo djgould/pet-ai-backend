@@ -70,7 +70,7 @@ export class StripeService {
               name: 'Charlie AI Photo Package',
               images: ['https://i.imgur.com/EHyR2nP.png'],
             },
-            unit_amount: 0,
+            unit_amount: 1000,
           },
           quantity: 1,
         },
