@@ -37,6 +37,7 @@ model Order {
   jobId                   String?
   inferenceJobs           InferenceJob[]
   resultImages            ResultImage[]
+  tier                    String           @default("free")
 }
 
 enum OrderStatus {

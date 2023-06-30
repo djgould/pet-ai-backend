@@ -78,7 +78,7 @@ export class TrainingProcessor extends WorkerHost {
       });
     } else if (status === 'succeeded') {
       this.logger.log(`Training succeeded for order ${orderId}`);
-      await this.prisma.order.update({
+      const order = await this.prisma.order.update({
         where: { id: orderId },
         data: {
           status: OrderStatus.UPLOADING_MODEL,
@@ -90,7 +90,11 @@ export class TrainingProcessor extends WorkerHost {
         response.data.output as string,
         job,
       );
-      this.inferenceService.startInference(orderId);
+      if (order.tier === 'free') {
+        this.inferenceService.startFreeInference(orderId);
+      } else {
+        this.inferenceService.startInference(orderId);
+      }
     } else {
       this.logger.log(
         `Training still in progress for order ${orderId}. Status: ${status}`,

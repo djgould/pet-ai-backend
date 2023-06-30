@@ -29,8 +29,9 @@ export class StripeService {
     clientReferenceId: string,
     lineItems: Stripe.ApiList<Stripe.LineItem>,
   ) {
-    const order = await this.prisma.order.findUnique({
+    const order = await this.prisma.order.update({
       where: { id: clientReferenceId },
+      data: { tier: 'basic' },
     });
 
     if (!order) {

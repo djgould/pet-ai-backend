@@ -79,6 +79,55 @@ export class InferenceService {
     private ordersService: OrdersService,
   ) {}
 
+  async startFreeInference(orderId: string) {
+    this.logger.log(`Starting inference for order ${orderId}`);
+
+    const order = await this.prisma.order.update({
+      where: { id: orderId },
+      data: { status: OrderStatus.INFERING },
+    });
+
+    const prompt = PROMPTS[0];
+    const request = {
+      version:
+        '97872e26144a42e9820d870955b18adc294364d9515936223a460f85ce380308',
+      input: {
+        model_url: order.trainedModelUrl,
+        prompt: prompt.prompt,
+        negative_prompt: prompt.negative_prompt,
+        width: 768,
+        height: 768,
+        prompt_strength: 0.8,
+        num_outputs: 10,
+        num_inference_steps: 50,
+        guidance_scale: 11,
+      },
+    };
+
+    const response = await this.replicateService.createPrediction(request);
+
+    await this.prisma.inferenceJob.create({
+      data: {
+        replicateId: response.data.id,
+        status: response.data.status,
+        label: prompt.label,
+        prompt: request.input.prompt,
+        negativePrompt: request.input.negative_prompt,
+        version: request.version,
+        width: request.input.width,
+        height: request.input.height,
+        numOutputs: request.input.num_outputs,
+        numInferenceSteps: request.input.num_inference_steps,
+        guidanceScale: request.input.guidance_scale,
+        order: {
+          connect: {
+            id: orderId,
+          },
+        },
+      },
+    });
+  }
+
   async startInference(orderId: string) {
     this.logger.log(`Starting inference for order ${orderId}`);
 
