@@ -64,18 +64,19 @@ export class StripeService {
       payment_method_types: ['card'],
       allow_promotion_codes: true,
       line_items: [
-        {
-          price_data: {
-            currency: 'usd',
-            product_data: {
-              name: 'Charlie AI Photo Package',
-              images: ['https://i.imgur.com/EHyR2nP.png'],
-            },
-            unit_amount: 1000,
-          },
-          quantity: 1,
-        },
+        // {
+        //   price_data: {
+        //     currency: 'usd',
+        //     product_data: {
+        //       name: 'Charlie AI Photo Package',
+        //       images: ['https://i.imgur.com/EHyR2nP.png'],
+        //     },
+        //     unit_amount: 1000,
+        //   },
+        //   quantity: 1,
+        // },
       ],
+      discounts: [{ promotion_code: 'promo_1NOURJBRQJfifN9hdiaa9ng7' }],
       client_reference_id: orderId,
       mode: 'payment',
       success_url: returnUrl,
