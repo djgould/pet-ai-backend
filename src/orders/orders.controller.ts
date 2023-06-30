@@ -48,6 +48,15 @@ export class OrdersController {
     private inferenceService: InferenceService,
   ) {}
 
+  @Post(':id/free')
+  async free(
+    @Req() req: Express.Request,
+    @CurrentUser() user: User,
+    @Param('id') id: string,
+  ) {
+    await this.trainingService.startTraining(id);
+  }
+
   @Post(':id/restart')
   async restartTraining(
     @Req() req: Express.Request,

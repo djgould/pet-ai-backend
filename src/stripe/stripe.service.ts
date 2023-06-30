@@ -62,6 +62,7 @@ export class StripeService {
   async createSession(orderId: string, returnUrl: string, cancelUrl: string) {
     return await this.stripe.checkout.sessions.create({
       payment_method_types: ['card'],
+      allow_promotion_codes: true,
       line_items: [
         {
           price_data: {
@@ -75,7 +76,6 @@ export class StripeService {
           quantity: 1,
         },
       ],
-      discounts: [{ promotion_code: 'promo_1NOURJBRQJfifN9hdiaa9ng7' }],
       client_reference_id: orderId,
       mode: 'payment',
       success_url: returnUrl,
