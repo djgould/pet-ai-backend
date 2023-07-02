@@ -70,6 +70,7 @@ async function bootstrap() {
   const { addQueue } = initializeBullBoard(app);
 
   app.enableCors({
+    origin: ['*'],
     exposedHeaders: ['Content-Range'],
   });
   await app.listen(process.env.PORT || 3000);
