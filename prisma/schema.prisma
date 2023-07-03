@@ -113,11 +113,12 @@ model TrainingImage {
 }
 
 model ResultImage {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  url       String
-  order     Order?   @relation(fields: [orderId], references: [id])
-  orderId   String?
-  label     String?
+  id             String   @id @default(cuid())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  url            String
+  watermarkedUrl String?
+  order          Order?   @relation(fields: [orderId], references: [id])
+  orderId        String?
+  label          String?
 }

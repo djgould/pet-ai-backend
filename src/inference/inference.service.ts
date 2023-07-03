@@ -12,6 +12,7 @@ import { FileDetails } from 'upload-js-full';
 import { OrderStatus } from '@prisma/client';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
+import sharp from 'sharp';
 
 const PROMPTS = [
   {
@@ -66,6 +67,9 @@ const PROMPTS = [
     label: 'impressionist',
   },
 ];
+
+const WATERMARK_URL =
+  'https://imagedelivery.net/Pg1MxPV3UBYR5Z4j-Ai2dQ/a139cb27-3bac-4120-1064-b50eee945d00/public';
 
 @Injectable()
 export class InferenceService {
@@ -203,7 +207,8 @@ export class InferenceService {
       files.map((file) => {
         this.createResultImage(
           orderId,
-          file.result.variants[0],
+          file[0].result.variants[0],
+          file[1].result.variants[0],
           inferenceJob.label,
         );
       }),
@@ -257,7 +262,24 @@ export class InferenceService {
     });
   }
 
-  private downloadResultImages(urls: string[]): Promise<UploadResponse>[] {
+  private async downloadImage(url: string) {
+    const response = await axios.get(url, { responseType: 'arraybuffer' });
+    return Buffer.from(response.data, 'binary');
+  }
+
+  // Function to add watermark
+  private async addWatermark(image: ArrayBuffer, watermarkURL: string) {
+    const watermark = await this.downloadImage(watermarkURL);
+
+    // Add watermark to image with sharp
+    const result = await sharp(Buffer.from(image))
+      .composite([{ input: watermark, gravity: 'southeast' }])
+      .toBuffer();
+
+    return result;
+  }
+
+  private downloadResultImages(urls: string[]): Promise<UploadResponse[]>[] {
     return urls.map(async (url) => {
       const response = await axios.get<ArrayBuffer>(url, {
         responseType: 'arraybuffer',
@@ -268,18 +290,27 @@ export class InferenceService {
         'image.jpeg',
       );
 
-      return file;
+      const watermark = await this.addWatermark(response.data, WATERMARK_URL);
+
+      const watermarked = await this.uploadService.upload(
+        new Blob([watermark], { type: 'image/jpeg' }),
+        'image.jpeg',
+      );
+
+      return [file, watermarked];
     });
   }
 
   private async createResultImage(
     orderId: string,
     url: string,
+    watermarkedUrl: string,
     label?: string,
   ) {
     return this.prisma.resultImage.create({
       data: {
         url: url,
+        watermarkedUrl: watermarkedUrl,
         label: label,
         order: {
           connect: {
