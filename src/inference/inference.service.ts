@@ -12,7 +12,7 @@ import { FileDetails } from 'upload-js-full';
 import { OrderStatus } from '@prisma/client';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
-import sharp from 'sharp';
+import * as sharp from 'sharp';
 
 const PROMPTS = [
   {
