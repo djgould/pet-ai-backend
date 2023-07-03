@@ -22,6 +22,7 @@ import { range } from 'rxjs';
 import { UserService } from 'src/user/user.service';
 import { TrainingService } from 'src/training/training.service';
 import { InferenceService } from 'src/inference/inference.service';
+import JSZip from 'jszip';
 
 export type WithETA<T> = T & { eta: number };
 
@@ -47,6 +48,30 @@ export class OrdersController {
     private trainingService: TrainingService,
     private inferenceService: InferenceService,
   ) {}
+
+  @Post(':id/download-selected')
+  async downloadSelected(@Body('ids') ids: string[], @Param('id') id: string) {
+    const order = await this.ordersService.getOrderById(id);
+    const images = await this.ordersService.getResultImagesForOrder(id);
+
+    const selectedImages = images.filter((image) => ids.includes(image.id));
+
+    const zip = new JSZip();
+    await Promise.all(
+      selectedImages.map(async (resultImage, i) => {
+        // download image from resultImage.url using axios and add to zip
+        const response = await axios.get(resultImage.url, {
+          responseType: 'arraybuffer',
+        });
+        zip.file(`image-${i}.jpeg`, response.data);
+        console.log(`image-${i}.jpeg added to zip`);
+      }),
+    );
+
+    const zipFile = await zip.generateAsync({ type: 'nodebuffer' });
+
+    return zipFile;
+  }
 
   @Post(':id/free')
   async free(

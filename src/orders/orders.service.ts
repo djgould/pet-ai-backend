@@ -212,4 +212,10 @@ export class OrdersService {
     await this.s3Service.putObject(request);
     return this.s3Service.putObjectCommandInputToUrl(request);
   }
+
+  getResultImagesForOrder(id: string) {
+    return this.prisma.resultImage.findMany({
+      where: { orderId: id },
+    });
+  }
 }
