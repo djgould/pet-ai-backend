@@ -22,7 +22,7 @@ import { range } from 'rxjs';
 import { UserService } from 'src/user/user.service';
 import { TrainingService } from 'src/training/training.service';
 import { InferenceService } from 'src/inference/inference.service';
-import JSZip from 'jszip';
+import * as JSZip from 'jszip';
 
 export type WithETA<T> = T & { eta: number };
 
