@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EmailService } from 'src/email/email.service';
+import { InferenceService } from 'src/inference/inference.service';
 import { OrdersService } from 'src/orders/orders.service';
 import { PrismaService } from 'src/prisma.service';
 import { TrainingService } from 'src/training/training.service';
@@ -15,6 +16,7 @@ export class StripeService {
   constructor(
     private prisma: PrismaService,
     private trainingService: TrainingService,
+    private inferenceService: InferenceService,
     private configService: ConfigService,
     private emailsService: EmailService,
     private userService: UserService,
@@ -40,7 +42,12 @@ export class StripeService {
 
     this.emailsService.sendPaymentReceivedEmail(order.id);
 
-    await this.trainingService.startTraining(order.id);
+    // the user has already trained a model via free tier
+    if (order.replicateModelUrl) {
+      await this.inferenceService.startInference(order.id);
+    } else {
+      await this.trainingService.startTraining(order.id);
+    }
   }
 
   async handleSessionCompleted(event: Stripe.Event) {
