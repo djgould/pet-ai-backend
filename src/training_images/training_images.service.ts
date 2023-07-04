@@ -42,9 +42,13 @@ export class TrainingImagesService {
     trainingImages: Express.Multer.File[],
   ): Promise<string> {
     const zip = new JSZip();
-    trainingImages.forEach((trainingImage) => {
-      zip.file(trainingImage.originalname, trainingImage.buffer);
-    });
+    await Promise.all(
+      trainingImages.map(async (trainingImage) => {
+        const resized = await sharp(trainingImage.buffer).resize(768, 768);
+
+        zip.file(trainingImage.originalname, resized.toBuffer());
+      }),
+    );
 
     const blob = await zip.generateAsync({ type: 'uint8array' });
 
