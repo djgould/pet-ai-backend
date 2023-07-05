@@ -31,7 +31,7 @@ export class EmailService {
 
       return response;
     } catch (e) {
-      this.logger.error(e.message, e.stack);
+      this.logger.error(`Error sending email: ${e.message}`, e.stack);
     }
   }
 
@@ -50,7 +50,7 @@ export class EmailService {
 
       return response;
     } catch (e) {
-      this.logger.error(e.message, e.stack);
+      this.logger.error(`Error sending email: ${e.message}`, e.stack);
     }
   }
 }
