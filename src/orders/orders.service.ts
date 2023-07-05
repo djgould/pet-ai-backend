@@ -165,7 +165,7 @@ export class OrdersService {
         zip.file(`image-${i}.jpeg`, response.data);
         console.log(`image-${i}.jpeg added to zip`);
       }),
-    );
+    ).catch(this.logger.error);
 
     const blob = await zip.generateAsync({ type: 'uint8array' });
 

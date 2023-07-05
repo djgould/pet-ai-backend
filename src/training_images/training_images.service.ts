@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
 import * as sharp from 'sharp';
 import * as JSZip from 'jszip';
@@ -8,6 +8,8 @@ import { PutObjectCommandInput } from '@aws-sdk/client-s3';
 
 @Injectable()
 export class TrainingImagesService {
+  private readonly logger = new Logger(TrainingImagesService.name);
+
   constructor(
     private prisma: PrismaService,
     private uploadService: UploadService,
@@ -48,7 +50,7 @@ export class TrainingImagesService {
 
         zip.file(trainingImage.originalname, resized.toBuffer());
       }),
-    );
+    ).catch(this.logger.error);
 
     const blob = await zip.generateAsync({ type: 'uint8array' });
 

@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Logger,
   Param,
   Post,
   Query,
@@ -42,6 +43,8 @@ function withEta(order: Order): WithETA<Order> {
 @Controller('orders')
 @UseGuards(AuthGuard)
 export class OrdersController {
+  private readonly logger = new Logger(OrdersController.name);
+
   constructor(
     private ordersService: OrdersService,
     private userService: UserService,
@@ -66,7 +69,7 @@ export class OrdersController {
         zip.file(`image-${i}.jpeg`, response.data);
         console.log(`image-${i}.jpeg added to zip`);
       }),
-    );
+    ).catch(this.logger.error);
 
     const zipFile = await zip.generateAsync({ type: 'nodebuffer' });
 
