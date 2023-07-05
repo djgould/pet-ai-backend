@@ -142,7 +142,7 @@ export class OrdersService {
       data: { status: OrderStatus.COMPLETED },
     });
 
-    this.emailsService.sendOrderFinishedEmail(orderId);
+    await this.emailsService.sendOrderFinishedEmail(orderId);
     this.uploadResultImages(orderId).catch(console.error);
     this.uploadWatermarkedResultImages(orderId).catch(console.error);
 
