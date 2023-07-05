@@ -40,14 +40,14 @@ export class StripeService {
       throw new Error(`No order found for id: ${clientReferenceId}`);
     }
 
-    await this.emailsService.sendPaymentReceivedEmail(order.id);
-
     // the user has already trained a model via free tier
     if (order.replicateModelUrl) {
       await this.inferenceService.startInference(order.id);
     } else {
       await this.trainingService.startTraining(order.id);
     }
+
+    await this.emailsService.sendPaymentReceivedEmail(order.id);
   }
 
   async handleSessionCompleted(event: Stripe.Event) {

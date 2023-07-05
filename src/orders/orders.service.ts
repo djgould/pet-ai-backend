@@ -6,7 +6,6 @@ import { OrderStatus, User } from '@prisma/client';
 import { InferenceService } from 'src/inference/inference.service';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
-import { Emails } from 'resend/build/src/emails/emails';
 import { EmailService } from 'src/email/email.service';
 import { UserService } from 'src/user/user.service';
 import * as JSZip from 'jszip';

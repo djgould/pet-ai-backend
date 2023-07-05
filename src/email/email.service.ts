@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Resend } from 'resend';
 import { PrismaService } from 'src/prisma.service';
@@ -6,6 +6,7 @@ import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class EmailService {
+  private readonly logger = new Logger(EmailService.name);
   resend: Resend;
   constructor(
     private config: ConfigService,
@@ -16,32 +17,40 @@ export class EmailService {
   }
 
   async sendOrderFinishedEmail(orderId: string) {
-    const order = await this.prisma.order.findUnique({
-      where: { id: orderId },
-    });
-    const user = await this.userService.getClerkUserFromId(order.userId);
-    const response = await this.resend.emails.send({
-      from: 'devin@devgould.com',
-      to: user.emailAddresses.map((email) => email.emailAddress),
-      subject: 'Your order is ready!',
-      text: `Your order is ready! Visit ${process.env.FRONTEND_URL}/orders/${order.id} to view your results.`,
-    });
+    try {
+      const order = await this.prisma.order.findUnique({
+        where: { id: orderId },
+      });
+      const user = await this.userService.getClerkUserFromId(order.userId);
+      const response = await this.resend.emails.send({
+        from: 'devin@devgould.com',
+        to: user.emailAddresses.map((email) => email.emailAddress),
+        subject: 'Your order is ready!',
+        text: `Your order is ready! Visit ${process.env.FRONTEND_URL}/orders/${order.id} to view your results.`,
+      });
 
-    return response;
+      return response;
+    } catch (e) {
+      this.logger.error(e.message, e.stack);
+    }
   }
 
   async sendPaymentReceivedEmail(orderId: string) {
-    const order = await this.prisma.order.findUnique({
-      where: { id: orderId },
-    });
-    const user = await this.userService.getClerkUserFromId(order.userId);
-    const response = await this.resend.emails.send({
-      from: 'devin@devgould.com',
-      to: user.emailAddresses.map((email) => email.emailAddress),
-      subject: 'Your order has in progress!',
-      text: `We are working on generating your images! THey should be ready in ~70 minutes. Visit ${process.env.FRONTEND_URL}/orders/${order.id} to view your the status!`,
-    });
+    try {
+      const order = await this.prisma.order.findUnique({
+        where: { id: orderId },
+      });
+      const user = await this.userService.getClerkUserFromId(order.userId);
+      const response = await this.resend.emails.send({
+        from: 'devin@devgould.com',
+        to: user.emailAddresses.map((email) => email.emailAddress),
+        subject: 'Your order has in progress!',
+        text: `We are working on generating your images! THey should be ready in ~70 minutes. Visit ${process.env.FRONTEND_URL}/orders/${order.id} to view your the status!`,
+      });
 
-    return response;
+      return response;
+    } catch (e) {
+      this.logger.error(e.message, e.stack);
+    }
   }
 }
