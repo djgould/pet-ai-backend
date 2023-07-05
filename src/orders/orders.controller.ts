@@ -24,6 +24,7 @@ import { UserService } from 'src/user/user.service';
 import { TrainingService } from 'src/training/training.service';
 import { InferenceService } from 'src/inference/inference.service';
 import * as JSZip from 'jszip';
+import { EmailService } from 'src/email/email.service';
 
 export type WithETA<T> = T & { eta: number };
 
@@ -50,6 +51,7 @@ export class OrdersController {
     private userService: UserService,
     private trainingService: TrainingService,
     private inferenceService: InferenceService,
+    private emailService: EmailService,
   ) {}
 
   @Post(':id/download-selected')
@@ -83,6 +85,7 @@ export class OrdersController {
     @Param('id') id: string,
   ) {
     await this.trainingService.startTraining(id);
+    await this.emailService.sendFreeTierStarted(id);
   }
 
   @Post(':id/restart')
