@@ -23,7 +23,7 @@ export class EmailService {
       });
       const user = await this.userService.getClerkUserFromId(order.userId);
       const response = await this.resend.emails.send({
-        from: 'devin@devgould.com',
+        from: 'devin@charlieai.app',
         to: user.emailAddresses.map((email) => email.emailAddress),
         subject: 'Your order is ready!',
         text: `Your order is ready! Visit ${process.env.FRONTEND_URL}/orders/${order.id} to view your results.`,
@@ -42,7 +42,7 @@ export class EmailService {
       });
       const user = await this.userService.getClerkUserFromId(order.userId);
       const response = await this.resend.emails.send({
-        from: 'devin@devgould.com',
+        from: 'devin@charlieai.app',
         to: user.emailAddresses.map((email) => email.emailAddress),
         subject: 'Your order has in progress!',
         text: `We are working on generating your images! THey should be ready in ~70 minutes. Visit ${process.env.FRONTEND_URL}/orders/${order.id} to view your the status!`,
@@ -61,7 +61,7 @@ export class EmailService {
       });
       const user = await this.userService.getClerkUserFromId(order.userId);
       const response = await this.resend.emails.send({
-        from: 'devin@devgould.com',
+        from: 'devin@charlieai.app',
         to: user.emailAddresses.map((email) => email.emailAddress),
         subject: 'Your order has in progress!',
         text: `We are working on generating your free images! THey should be ready in ~70 minutes. Visit ${process.env.FRONTEND_URL}/orders/${order.id} to view your the status!`,
