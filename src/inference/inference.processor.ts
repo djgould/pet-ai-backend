@@ -56,6 +56,10 @@ export class InferenceProcessor extends WorkerHost {
 
     return Promise.all(
       inferenceJobs.map(async (job) => {
+        if (job.status === 'succeeded') {
+          return true;
+        }
+
         const predictionId = job.replicateId;
         this.logger.log(
           `Checking InferenceJob ${job.id} status for order: ${orderId}, prediction: ${predictionId}:`,
