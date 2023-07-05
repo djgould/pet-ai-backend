@@ -16,6 +16,7 @@ import { getBullBoardQueues } from './bull/bull.service';
 import { ExpressAdapter } from '@bull-board/express';
 import { createBullBoard } from '@bull-board/api';
 import { BaseAdapter } from '@bull-board/api/dist/src/queueAdapters/base';
+import WinstonSentry from 'winston-transport-sentry-node';
 
 function initializeBullBoard(app: any) {
   const serverAdapter = new ExpressAdapter();
@@ -48,6 +49,12 @@ async function bootstrap() {
         ),
       }),
       new AxiomTransport(),
+      new WinstonSentry({
+        sentry: {
+          dsn: process.env.SENTRY_DNS,
+        },
+        level: 'error',
+      }),
     ],
   });
 
