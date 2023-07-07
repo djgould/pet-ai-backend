@@ -47,14 +47,9 @@ export class OrdersService {
           await this.trainingImageService.createTrainingImage(trainingImage),
       ),
     );
-    const zipUrl = await this.trainingImageService.uploadTrainingImagesZip(
-      orderId,
-      trainingImageFiles,
-    );
     return await this.prisma.order.update({
       where: { id: orderId },
       data: {
-        trainingImagesZipUrl: zipUrl,
         trainingImages: {
           connect: trainingImages.map((trainingImage) => ({
             id: trainingImage.id,
@@ -142,8 +137,8 @@ export class OrdersService {
     });
 
     await this.emailsService.sendOrderFinishedEmail(orderId);
-    this.uploadResultImages(orderId).catch(console.error);
-    this.uploadWatermarkedResultImages(orderId).catch(console.error);
+    //this.uploadResultImages(orderId).catch(console.error);
+    //this.uploadWatermarkedResultImages(orderId).catch(console.error);
 
     return order;
   }
