@@ -136,7 +136,7 @@ export class OrdersController {
 
   @Post()
   @UseInterceptors(FilesInterceptor('files'))
-  async createPendingOrder(
+  async createOrder(
     @Req() req: Express.Request,
     @UploadedFiles() trainingImageFiles: Express.Multer.File[],
     @CurrentUser() user: User,
@@ -177,6 +177,8 @@ export class OrdersController {
       await this.trainingService.startTraining(order.id);
       await this.emailService.sendOrderStartedEmail(order.id);
     }
+
+    return order;
   }
 
   @Get()
