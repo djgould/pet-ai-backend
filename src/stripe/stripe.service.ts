@@ -80,6 +80,8 @@ export class StripeService {
               images: [
                 'https://imagedelivery.net/Pg1MxPV3UBYR5Z4j-Ai2dQ/4fa8c284-c91b-49f3-87d9-0387e7d50900/public',
               ],
+              description:
+                '3 trainings per month and access to all new styles (2 added each month)',
             },
             unit_amount: 499,
             recurring: {
