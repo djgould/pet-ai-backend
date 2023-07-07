@@ -88,6 +88,19 @@ export class OrdersController {
     await this.emailService.sendFreeTierStarted(id);
   }
 
+  @Post(':id/start-training')
+  async startTraining(
+    @Req() req: Express.Request,
+    @CurrentUser() user: User,
+    @Param('id') id: string,
+  ) {
+    if (user.tier !== 'basic') {
+      throw new Error('Unauthorized');
+    }
+    await this.trainingService.startTraining(id);
+    await this.emailService.sendOrderStartedEmail(id);
+  }
+
   @Post(':id/restart')
   async restartTraining(
     @Req() req: Express.Request,

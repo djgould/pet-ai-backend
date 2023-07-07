@@ -63,8 +63,27 @@ export class EmailService {
       const response = await this.resend.emails.send({
         from: 'devin@charlieai.app',
         to: user.emailAddresses.map((email) => email.emailAddress),
-        subject: 'Your order has in progress!',
+        subject: 'Your order is in progress!',
         text: `We are working on generating your free images! THey should be ready in ~70 minutes. Visit ${process.env.FRONTEND_URL}/orders/${order.id} to view your the status!`,
+      });
+
+      return response;
+    } catch (e) {
+      this.logger.error(`Error sending email: ${e.message}`, e.stack);
+    }
+  }
+
+  async sendOrderStartedEmail(orderId: string) {
+    try {
+      const order = await this.prisma.order.findUnique({
+        where: { id: orderId },
+      });
+      const user = await this.userService.getClerkUserFromId(order.userId);
+      const response = await this.resend.emails.send({
+        from: 'devin@charlieai.app',
+        to: user.emailAddresses.map((email) => email.emailAddress),
+        subject: 'Your order is in progress!',
+        text: `We are working on generating your images! THey should be ready in ~70 minutes. Visit ${process.env.FRONTEND_URL}/orders/${order.id} to view your the status!`,
       });
 
       return response;
