@@ -90,11 +90,8 @@ export class TrainingProcessor extends WorkerHost {
         response.data.output as string,
         job,
       );
-      if (order.tier === 'free') {
-        this.inferenceService.startFreeInference(orderId);
-      } else {
-        this.inferenceService.startInference(orderId);
-      }
+
+      return this.inferenceService.startInference(orderId);
     } else {
       this.logger.log(
         `Training still in progress for order ${orderId}. Status: ${status}`,

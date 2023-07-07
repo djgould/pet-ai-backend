@@ -40,6 +40,11 @@ export class StripeService {
       throw new Error(`No order found for id: ${clientReferenceId}`);
     }
 
+    const user = await this.prisma.user.update({
+      where: { id: order.userId },
+      data: { tier: 'basic' },
+    });
+
     // the user has already trained a model via free tier
     if (order.replicateModelUrl) {
       await this.inferenceService.startInference(order.id);
