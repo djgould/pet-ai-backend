@@ -82,6 +82,9 @@ export class StripeService {
               ],
             },
             unit_amount: 499,
+            recurring: {
+              interval: 'month',
+            },
           },
           quantity: 1,
         },
