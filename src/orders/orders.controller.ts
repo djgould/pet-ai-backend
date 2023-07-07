@@ -168,10 +168,15 @@ export class OrdersController {
     );
 
     const order = await this.ordersService.createPendingOrder(user);
-    return this.ordersService.addTrainingImagesToOrder(
+    await this.ordersService.addTrainingImagesToOrder(
       order.id,
       trainingImageFiles ? trainingImageFiles : downloadedFiles,
     );
+
+    if (user.tier === 'basic') {
+      await this.trainingService.startTraining(order.id);
+      await this.emailService.sendOrderStartedEmail(order.id);
+    }
   }
 
   @Get()

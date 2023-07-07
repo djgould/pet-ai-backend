@@ -29,6 +29,7 @@ import { EmailService } from './email/email.service';
 import { EmailModule } from './email/email.module';
 import { CommandModule } from 'nestjs-command';
 import { OrdersCommand } from './orders/orders.command';
+import { UserController } from './user/user.controller';
 
 declare global {
   namespace Express {
@@ -67,6 +68,7 @@ declare global {
     OrdersController,
     HealthController,
     StripeController,
+    UserController,
   ],
   providers: [
     AppService,
