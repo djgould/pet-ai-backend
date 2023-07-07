@@ -47,6 +47,12 @@ export class OrdersService {
           await this.trainingImageService.createTrainingImage(trainingImage),
       ),
     );
+
+    await this.trainingImageService.uploadTrainingImagesZip(
+      orderId,
+      trainingImageFiles,
+    );
+
     return await this.prisma.order.update({
       where: { id: orderId },
       data: {
