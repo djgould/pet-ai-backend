@@ -76,18 +76,23 @@ export class StripeService {
           price_data: {
             currency: 'usd',
             product_data: {
-              name: 'Charlie AI Photo Package',
-              images: ['https://i.imgur.com/EHyR2nP.png'],
+              name: 'Charlie AI Basic Plan',
+              images: [
+                'https://imagedelivery.net/Pg1MxPV3UBYR5Z4j-Ai2dQ/4fa8c284-c91b-49f3-87d9-0387e7d50900/public',
+              ],
             },
-            unit_amount: 1000,
+            unit_amount: 499,
           },
           quantity: 1,
         },
       ],
       client_reference_id: orderId,
-      mode: 'payment',
+      mode: 'subscription',
       success_url: returnUrl,
       cancel_url: cancelUrl,
+      subscription_data: {
+        trial_period_days: 7,
+      },
     });
   }
 
