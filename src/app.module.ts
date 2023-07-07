@@ -30,6 +30,8 @@ import { EmailModule } from './email/email.module';
 import { CommandModule } from 'nestjs-command';
 import { OrdersCommand } from './orders/orders.command';
 import { UserController } from './user/user.controller';
+import { WebhooksController } from './webhooks/webhooks.controller';
+import { TrackingService } from './tracking/tracking.service';
 
 declare global {
   namespace Express {
@@ -69,6 +71,7 @@ declare global {
     HealthController,
     StripeController,
     UserController,
+    WebhooksController,
   ],
   providers: [
     AppService,
@@ -81,6 +84,7 @@ declare global {
     BullService,
     StripeService,
     OrdersCommand,
+    TrackingService,
   ],
   exports: [
     PrismaService,

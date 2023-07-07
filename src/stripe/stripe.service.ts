@@ -1,9 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import axios from 'axios';
 import { EmailService } from 'src/email/email.service';
 import { InferenceService } from 'src/inference/inference.service';
 import { OrdersService } from 'src/orders/orders.service';
 import { PrismaService } from 'src/prisma.service';
+import { TrackingService } from 'src/tracking/tracking.service';
 import { TrainingService } from 'src/training/training.service';
 import { UserService } from 'src/user/user.service';
 import Stripe from 'stripe';
@@ -20,6 +22,7 @@ export class StripeService {
     private configService: ConfigService,
     private emailsService: EmailService,
     private userService: UserService,
+    private trackingService: TrackingService,
   ) {
     this.stripe = new Stripe(configService.get('STRIPE_SECRET_KEY'), {
       apiVersion: '2022-11-15',
@@ -65,6 +68,15 @@ export class StripeService {
     );
 
     const lineItems = sessionWithLineItems.line_items;
+    this.trackingService.track({
+      project: 'charlie-ai',
+      channel: 'user-subscribed',
+      event: 'user subscribed',
+      description: 'email: djgould0628@gmail.com',
+      icon: '🤑',
+      notify: true,
+    });
+
     // Fulfill the purchase...
     await this.fulfillOrder(
       sessionWithLineItems.client_reference_id,
