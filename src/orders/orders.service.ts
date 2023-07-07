@@ -48,14 +48,16 @@ export class OrdersService {
       ),
     );
 
-    await this.trainingImageService.uploadTrainingImagesZip(
-      orderId,
-      trainingImageFiles,
-    );
+    const trainingImagesZipUrl =
+      await this.trainingImageService.uploadTrainingImagesZip(
+        orderId,
+        trainingImageFiles,
+      );
 
     return await this.prisma.order.update({
       where: { id: orderId },
       data: {
+        trainingImagesZipUrl,
         trainingImages: {
           connect: trainingImages.map((trainingImage) => ({
             id: trainingImage.id,
