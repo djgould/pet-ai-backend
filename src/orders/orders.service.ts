@@ -217,4 +217,17 @@ export class OrdersService {
       where: { orderId: id },
     });
   }
+
+  getOrdersThisMonthForUser(userId: string) {
+    const date = new Date();
+    date.setMonth(date.getMonth() - 1);
+    return this.prisma.order.count({
+      where: {
+        userId,
+        createdAt: {
+          gte: date,
+        },
+      },
+    });
+  }
 }

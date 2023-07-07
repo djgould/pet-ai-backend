@@ -97,6 +97,11 @@ export class OrdersController {
     if (user.tier !== 'basic') {
       throw new Error('Unauthorized');
     }
+    const numOrdersThisMonth =
+      await this.ordersService.getOrdersThisMonthForUser(user.id);
+    if (numOrdersThisMonth > 3) {
+      throw new Error('Unauthorized');
+    }
     await this.trainingService.startTraining(id);
     await this.emailService.sendOrderStartedEmail(id);
   }
