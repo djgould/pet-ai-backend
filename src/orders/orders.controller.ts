@@ -25,6 +25,7 @@ import { TrainingService } from 'src/training/training.service';
 import { InferenceService } from 'src/inference/inference.service';
 import * as JSZip from 'jszip';
 import { EmailService } from 'src/email/email.service';
+import { TrackingService } from 'src/tracking/tracking.service';
 
 export type WithETA<T> = T & { eta: number };
 
@@ -52,6 +53,7 @@ export class OrdersController {
     private trainingService: TrainingService,
     private inferenceService: InferenceService,
     private emailService: EmailService,
+    private trackingService: TrackingService,
   ) {}
 
   @Post(':id/download-selected')
@@ -142,6 +144,14 @@ export class OrdersController {
     @CurrentUser() user: User,
     @Body('urls') urls: string[],
   ) {
+    this.trackingService.track({
+      project: 'charlie-ai',
+      channel: 'order-created',
+      event: 'order created',
+      description: `email: ${user.id}`,
+      icon: '🎉',
+      notify: true,
+    });
     const downloadedFiles: Express.Multer.File[] = await Promise.all(
       urls.map(async (url, i) => {
         const response = await axios.get(url, { responseType: 'arraybuffer' });
