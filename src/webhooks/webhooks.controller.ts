@@ -8,7 +8,7 @@ export class WebhooksController {
   constructor(private trackingService: TrackingService) {}
 
   @Post('/clerk')
-  async handleClerkWebhook(@Body('evt') evt: WebhookEvent) {
+  async handleClerkWebhook(@Body() evt: WebhookEvent) {
     switch (evt.type) {
       case 'user.created': // this is typed
         await this.trackingService.track({
