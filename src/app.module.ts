@@ -93,6 +93,7 @@ declare global {
     UploadService,
     TrainingImagesService,
     UserService,
+    TrackingService,
   ],
 })
 export class AppModule {
